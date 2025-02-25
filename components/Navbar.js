@@ -24,8 +24,8 @@ function Navbar() {
 
                 <ul className="hidden md:flex space-x-6">
                     <li><Link href="/" className="hover:text-blue-600">Home</Link></li>
-                    <li><Link href="/manage-emp" className="hover:text-blue-600">Manage</Link></li>
-                    <li><Link href="/add-emp" className="hover:text-blue-600">Add/Edit Employee</Link></li>
+                    <li><Link href="/manage-emp" className="hover:text-blue-600">Work Time</Link></li>
+                    <li><Link href="/add-emp" className="hover:text-blue-600">Employee Module</Link></li>
                 </ul>
             </div>
 
@@ -33,8 +33,8 @@ function Navbar() {
             {isOpen && (
                 <ul className="md:hidden bg-gray-100 py-4 px-6 space-y-3">
                     <li><Link href="/" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Home</Link></li>
-                    <li><Link href="/m" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Manage</Link></li>
-                    <li><Link href="/add-emp" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Add/Edit Employee</Link></li>
+                    <li><Link href="/m" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Work Time</Link></li>
+                    <li><Link href="/add-emp" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Employee Module</Link></li>
                 </ul>
             )}
         </nav>
