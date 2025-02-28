@@ -6,8 +6,9 @@ import { FormPane } from "./FormPane";
 function ManageEmp() {
     const [employees, setEmployees] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [entriesPerPage, setEntriesPerPage] = useState(2);
+    const [entriesPerPage, setEntriesPerPage] = useState(5);
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
 
     const fetchEmployees = async () => {
         try {
@@ -18,7 +19,8 @@ function ManageEmp() {
             console.error("Error fetching employees:", error);
         }
     };
-        const handleFormSubmit = async (formData) => {
+
+    const handleFormSubmit = async (formData) => {
         try {
             // Add API call to create a new employee
             const response = await fetch("/api/fetch", {
@@ -29,18 +31,24 @@ function ManageEmp() {
             
             if (!response.ok) throw new Error("Failed to add employee");
             
-            // Refresh the employee list
+            // Refresh
             await fetchEmployees();
             
-            // Close the form
             setIsFormOpen(false);
         } catch (error) {
             console.error("Error adding employee:", error);
         }
     };
+
     useEffect(() => {
         fetchEmployees();
     }, []);
+
+    useEffect(() => {
+        // Reset to first page when entries per page changes or when search query changes
+        setCurrentPage(1);
+    }, [entriesPerPage, searchQuery]);
+
     const handleOpenForm = () => {
         setIsFormOpen(true);
     };
@@ -48,19 +56,57 @@ function ManageEmp() {
     const handleCloseForm = () => {
         setIsFormOpen(false);
     };
+  
+    const updateBackendTime = async (id, type, value) => {
+        console.log( type," - ",value);
+        try {
+            const response = await fetch(`/api/fetch?id=${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ [type]: value }),
+            });
+            if (!response.ok) throw new Error("Failed to update time in backend");
+        } catch (error) {
+            console.error("Error updating time in backend:", error);
+        }
+    };
 
-    const handleClock = async (id, type) => {
+    const handleBreak = async (id) => {
+        try {
+            const employee = employees.find((emp) => emp.id === id);
+            const newStatus = employee.status === "active" ? "inactive" : "active";
+            const breakEndTime = newStatus === "active" ? new Date().toISOString() : null;
+
+            await toggleBreakStatus(id, newStatus);
+            await updateBackendTime(id, "status", newStatus);
+            if (breakEndTime) {
+                await updateBackendTime(id, "break_end", breakEndTime);
+                await updateBackendTime(id, "breakToggle", false);
+            }
+            await fetchEmployees();
+        } catch (error) {
+            console.error("Error handling break:", error);
+        }
+    };
+
+    const handleClock = async (id, type, time) => {
         try {
             if (type === "clock_out") {
                 const status = "day-over";
                 toggleBreakStatus(id, status);
             }
+            else {
+                const status = type;
+                toggleBreakStatus(id, status);
+            }
+           
             const response = await fetch(`/api/fetch?id=${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ [type]: true }),
             });
             if (!response.ok) throw new Error("Failed to update time");
+            await updateBackendTime(id, type, time);
             await fetchEmployees();
         } catch (error) {
             console.error("Error updating time:", error);
@@ -69,8 +115,8 @@ function ManageEmp() {
 
     const toggleBreakStatus = async (id, currentStatus) => {
         try {
-
-            const newStatus = currentStatus === "active" ? "inactive" : "active";
+            console.log(currentStatus);
+            let newStatus = currentStatus === "active" ? "inactive" : "active";
             if (currentStatus === "day-over") {
                 newStatus = "day-over";
             }
@@ -80,6 +126,8 @@ function ManageEmp() {
                 body: JSON.stringify({ status: newStatus }),
             });
             if (!response.ok) throw new Error("Failed to update break status");
+            
+            await updateBackendTime(id, "status", newStatus);
             await fetchEmployees();
         } catch (error) {
             console.error("Error updating break status:", error);
@@ -93,6 +141,23 @@ function ManageEmp() {
         emp.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         emp.role?.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    // Pagination calculation
+    const totalPages = Math.ceil(filteredEmployees.length / entriesPerPage);
+    const indexOfLastEmployee = currentPage * entriesPerPage;
+    const indexOfFirstEmployee = indexOfLastEmployee - entriesPerPage;
+    const currentEmployees = filteredEmployees.slice(indexOfFirstEmployee, indexOfLastEmployee);
+
+    // Handle pagination
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+    const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+    const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
+
+    // Generate page numbers
+    const pageNumbers = [];
+    for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+    }
 
     // Generate initials from name if avatar is not available
     const getInitials = (firstName, lastName) => {
@@ -130,7 +195,6 @@ function ManageEmp() {
                     <Button onClick={handleOpenForm} className="bg-blue-600 hover:bg-blue-700 text-white" >
                         Add New Record
                     </Button>
-
                 </div>
             </div>
 
@@ -197,7 +261,7 @@ function ManageEmp() {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredEmployees.slice(0, entriesPerPage).map((emp) => (
+                            {currentEmployees.map((emp) => (
                                 <tr key={emp.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <input type="checkbox" className="h-4 w-4" />
@@ -248,7 +312,7 @@ function ManageEmp() {
                                                 <Button
                                                     size="sm"
                                                     className="bg-green-500 text-white hover:bg-green-600"
-                                                    onClick={() => handleClock(emp.id, "clock_in")}
+                                                    onClick={() => handleClock(emp.id, "clock_in", new Date().toISOString())}
                                                     disabled={!!emp.clock_in}
                                                 >
                                                     Clock In
@@ -256,7 +320,7 @@ function ManageEmp() {
                                                 <Button
                                                     size="sm"
                                                     className="bg-yellow-500 text-white hover:bg-yellow-600"
-                                                    onClick={() => toggleBreakStatus(emp.id, emp.status)}
+                                                    onClick={() => handleBreak(emp.id)}
                                                     disabled={!emp.clock_in || !!emp.clock_out}
                                                 >
                                                     {emp.status === "active" ? "Break" : "Resume"}
@@ -264,7 +328,7 @@ function ManageEmp() {
                                                 <Button
                                                     size="sm"
                                                     className="bg-red-500 text-white hover:bg-red-600"
-                                                    onClick={() => handleClock(emp.id, "clock_out")}
+                                                    onClick={() => handleClock(emp.id, "clock_out", new Date().toISOString())}
                                                     disabled={!emp.clock_in || !!emp.clock_out}
                                                 >
                                                     Clock Out
@@ -285,31 +349,51 @@ function ManageEmp() {
                             ))}
                         </tbody>
                     </table>
-                  .
-              
 
                     {/* Pagination controls */}
-            <div className="mt-4 flex justify-between items-center">
-                <div className="text-sm text-gray-500">
-                    Showing 1 to {Math.min(entriesPerPage, filteredEmployees.length)} of {filteredEmployees.length} entries
+                    <div className="mt-4 flex justify-between items-center">
+                        <div className="text-sm text-gray-500">
+                            Showing {filteredEmployees.length === 0 ? 0 : indexOfFirstEmployee + 1} to {Math.min(indexOfLastEmployee, filteredEmployees.length)} of {filteredEmployees.length} entries
+                        </div>
+                        <div className="flex space-x-2">
+                            <button 
+                                className={`px-3 py-1 border border-gray-300 rounded-md ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'} text-sm`}
+                                onClick={goToPrevPage}
+                                disabled={currentPage === 1}
+                            >
+                                Previous
+                            </button>
+                            
+                            {pageNumbers.map(number => (
+                                <button 
+                                    key={number}
+                                    className={`px-3 py-1 border border-gray-300 rounded-md ${currentPage === number ? 'bg-blue-600 text-white' : 'bg-gray-50 hover:bg-gray-100 text-gray-700'} text-sm`}
+                                    onClick={() => paginate(number)}
+                                >
+                                    {number}
+                                </button>
+                            ))}
+                            
+                            <button 
+                                className={`px-3 py-1 border border-gray-300 rounded-md ${currentPage === totalPages || totalPages === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'} text-sm`}
+                                onClick={goToNextPage}
+                                disabled={currentPage === totalPages || totalPages === 0}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div className="flex space-x-2">
-                    <button className="px-3 py-1 border border-gray-300 rounded-md bg-gray-50 text-sm">Previous</button>
-                    <button className="px-3 py-1 border border-gray-300 rounded-md bg-blue-600 text-white text-sm">1</button>
-                    <button className="px-3 py-1 border border-gray-300 rounded-md bg-gray-50 text-sm">Next</button>
-                </div>
-            </div>
-        </div>
-    ) : (
-        <p className="text-center py-8">No employees found...</p>
-    )
-} 
-<FormPane 
+            ) : (
+                <p className="text-center py-8">No employees found...</p>
+            )}
+            
+            <FormPane 
                 isOpen={isFormOpen}
                 onClose={handleCloseForm}
                 onSubmit={handleFormSubmit}
             />
-        </div >
+        </div>
     );
 }
 

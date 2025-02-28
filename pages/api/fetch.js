@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  const API_URL = "http://localhost:4000/employees"; // Your NestJS backend
+  const API_URL = "http://localhost:4000/employees"; 
 
   try {
     if (req.method === "GET") {
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     } 
     
     else if (req.method === "PUT") {
-      const { id } = req.query; // Get employee ID from query params
+      const { id } = req.query ;
       const response = await fetch(`${API_URL}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -35,6 +35,7 @@ export default async function handler(req, res) {
       const data = await response.json();
       return res.status(response.status).json(data);
     } 
+    
     
     else {
       return res.status(405).json({ message: "Method not allowed" });
