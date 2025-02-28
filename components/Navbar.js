@@ -23,9 +23,9 @@ function Navbar() {
 
 
                 <ul className="hidden md:flex space-x-6">
-                    <li><Link href="/" className="hover:text-blue-600">Home</Link></li>
-                    <li><Link href="/manage-emp" className="hover:text-blue-600">Work Time</Link></li>
-                    <li><Link href="/add-emp" className="hover:text-blue-600">Employee Module</Link></li>
+                    <li><Link href="/" className="text-black hover:text-blue-600">Home</Link></li>
+                    <li><Link href="/manage-emp" className="text-black hover:text-blue-600">Work Time</Link></li>
+                    <li><Link href="/add-emp" className="text-black hover:text-blue-600">Employee Module</Link></li>
                 </ul>
             </div>
 
