@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Search, MoreVertical, Edit, ChevronDown } from "lucide-react";
 import { FormPane } from "./FormPane";
-
+import { createEmployee, getAllEmployees, empClockedIn, empClockedOut, empBreakStart, empBreakEnd } from "/pages/api/fetch";
+import * as XLSX from "xlsx";
 function ManageEmp() {
     const [employees, setEmployees] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -10,33 +11,51 @@ function ManageEmp() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
 
+const exportToExcel = (data, fileName = "Employee_Attendance.xlsx") => {
+    if (!data || data.length === 0) {
+        alert("No data available to export.");
+        return;
+    }
+    console.log("consoled")
+    // Map JSON to a simplified structure (only required fields)
+    const formattedData = data.map(emp => ({
+        "Employee ID": emp.employee_id,
+        "First Name": emp.first_name,
+        "Last Name": emp.last_name,
+        "Email": emp.email,
+        "Department": emp.department,
+        "Role": emp.role,
+        "Attendance Date": emp.attendance_date?.split(" ")[0] || "N/A", // Extracts only date
+        "Clock In": emp.clock_in || "N/A",
+        "Clock Out": emp.clock_out || "N/A",
+        "Total Work Time": emp.total_work_time || "00:00:00",
+        "Total Break Time": emp.total_break_time || "00:00:00",
+        "Status": emp.attendance_status || "N/A",
+    }));
+
+    // Create worksheet and workbook
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
+
+    // Create and trigger the download
+    XLSX.writeFile(workbook, fileName);
+};
+
     const fetchEmployees = async () => {
-        try {
-            const response = await fetch("/api/fetch");
-            const data = await response.json();
-            setEmployees(data);
-        } catch (error) {
-            console.error("Error fetching employees:", error);
-        }
+        const data = await getAllEmployees();
+        console.log("data", data);
+        setEmployees(data);
     };
 
     const handleFormSubmit = async (formData) => {
         try {
-            // Add API call to create a new employee
-            const response = await fetch("/api/fetch", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
-            });
-            
-            if (!response.ok) throw new Error("Failed to add employee");
-            
-            // Refresh
-            await fetchEmployees();
-            
+            const data = await createEmployee(formData);
+            console.log("next-line");
             setIsFormOpen(false);
+            await fetchEmployees();
         } catch (error) {
-            console.error("Error adding employee:", error);
+            console.error("Error creating employee:", error);
         }
     };
 
@@ -56,83 +75,99 @@ function ManageEmp() {
     const handleCloseForm = () => {
         setIsFormOpen(false);
     };
-  
-    const updateBackendTime = async (id, type, value) => {
-        console.log( type," - ",value);
-        try {
-            const response = await fetch(`/api/fetch?id=${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ [type]: value }),
-            });
-            if (!response.ok) throw new Error("Failed to update time in backend");
-        } catch (error) {
-            console.error("Error updating time in backend:", error);
-        }
-    };
 
+
+
+    // const handleBreak = async (id) => {
+    //     console.log(employees);
+    //     if(employees.id.break_status == 'false'){
+    //         breakStart(id);
+    //     }else{
+    //         breakEnd(id);
+    //     }
+    // };
     const handleBreak = async (id) => {
-        try {
-            const employee = employees.find((emp) => emp.id === id);
-            const newStatus = employee.status === "active" ? "inactive" : "active";
-            const breakEndTime = newStatus === "active" ? new Date().toISOString() : null;
+        console.log(employees); // Debugging step to check employees data
 
-            await toggleBreakStatus(id, newStatus);
-            await updateBackendTime(id, "status", newStatus);
-            if (breakEndTime) {
-                await updateBackendTime(id, "break_end", breakEndTime);
-                await updateBackendTime(id, "breakToggle", false);
-            }
-            await fetchEmployees();
-        } catch (error) {
-            console.error("Error handling break:", error);
+        // Find the employee in the array
+        const employee = employees.find(emp => emp.employee_id === id);
+
+        if (!employee) {
+            console.error("Employee not found!");
+            return;
+        }
+
+        // Ensure break_status exists before checking it
+        if (employee.break_status === null || employee.break_status === "false" || employee.break_status === "completed") {
+            console.log(employee.break_status);
+            console.log("start-break ke code mai");
+            await breakStart(employee.attendance_id);
+            fetchEmployees();
+        } else {
+            console.log(employee.break_status);
+            console.log("end-break ke code mai");
+            await breakEnd(employee.attendance_id);
+            fetchEmployees();
         }
     };
 
-    const handleClock = async (id, type, time) => {
+    async function breakEnd(id) {
+        try {
+            const res = await empBreakEnd(id);
+            console.log(res);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    async function breakStart(id) {
+        try {
+            const res = await empBreakStart(id);
+            console.log(res);
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
+    const handleClock = async (id) => {
         try {
             if (type === "clock_out") {
                 const status = "day-over";
-                toggleBreakStatus(id, status);
+                toggleBreakStatus(id, null, status);
             }
             else {
                 const status = type;
-                toggleBreakStatus(id, status);
+                toggleBreakStatus(id, null, status);
             }
-           
+            console.log(`Making PUT request to /api/fetch?id=${id} with body:`, { [type]: true });
             const response = await fetch(`/api/fetch?id=${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ [type]: true }),
             });
             if (!response.ok) throw new Error("Failed to update time");
-            await updateBackendTime(id, type, time);
             await fetchEmployees();
         } catch (error) {
             console.error("Error updating time:", error);
         }
     };
 
-    const toggleBreakStatus = async (id, currentStatus) => {
-        try {
-            console.log(currentStatus);
-            let newStatus = currentStatus === "active" ? "inactive" : "active";
-            if (currentStatus === "day-over") {
-                newStatus = "day-over";
-            }
-            const response = await fetch(`/api/fetch?id=${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: newStatus }),
-            });
-            if (!response.ok) throw new Error("Failed to update break status");
-            
-            await updateBackendTime(id, "status", newStatus);
-            await fetchEmployees();
-        } catch (error) {
-            console.error("Error updating break status:", error);
-        }
-    };
+    // const toggleBreakStatus = async (id, attendance, currentStatus) => {
+    //     try {
+    //         console.log(currentStatus);
+    //         const response = await fetch(`/api/fetch?id=${id}`, {
+    //             method: "PUT",
+    //             headers: { "Content-Type": "application/json" },
+    //             body: JSON.stringify({
+    //                 status: currentStatus,
+    //                 attendance_id: attendance
+    //             }),
+    //         });
+    //         if (!response.ok) throw new Error("Failed to update break status");
+    //         await fetchEmployees();
+    //     } catch (error) {
+    //         console.error("Error updating break status:", error);
+    //     }
+    // };
 
     // Filter employees based on search query
     const filteredEmployees = employees.filter(emp =>
@@ -182,16 +217,36 @@ function ManageEmp() {
         }
     };
 
+    async function handleClockIn(id) {
+        try {
+            console.log("Handle Clock in");
+            const res = await empClockedIn(id);
+            await fetchEmployees();
+            console.log(res);
+        } catch (e) {
+            console.error(e)
+        }
+    }
+    async function handleClockOut(id) {
+        try {
+            console.log("Handle Clock out");
+            const res = await empClockedOut(id);
+            await fetchEmployees();
+            console.log(res);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
     return (
         <div className="w-full mx-auto p-6 bg-white shadow">
             {/* Header with title and action buttons */}
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-xl font-bold text-gray-800">Validating Peers, One Employee at a Time</h1>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="flex items-center text-white gap-2 bg-blue-600 hover:bg-blue-700 hover:text-white">
-                        Export <ChevronDown size={16} />
+                    <Button variant="outline" className="flex items-center text-white gap-2 bg-blue-600 hover:bg-blue-700 hover:text-white" onClick={() => exportToExcel(employees)}>
+                        Export 
                     </Button>
-
                     <Button onClick={handleOpenForm} className="bg-blue-600 hover:bg-blue-700 text-white" >
                         Add New Record
                     </Button>
@@ -262,7 +317,7 @@ function ManageEmp() {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {currentEmployees.map((emp) => (
-                                <tr key={emp.id} className="hover:bg-gray-50">
+                                <tr key={emp.employee_id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <input type="checkbox" className="h-4 w-4" />
                                     </td>
@@ -289,21 +344,45 @@ function ManageEmp() {
                                         {emp.email}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {emp.clock_in ? new Date(emp.clock_in).toLocaleDateString() : "N/A"}
+                                        {emp.clock_in ? emp.attendance_date.split(" ")[0] : "N/A"}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+
+                                    <td className="px-3 py-3 text-sm text-gray-500">
                                         {emp.clock_out ? (
-                                            <span className="font-semibold text-blue-600">Total: {emp.total_time}</span>
+                                            <div className="flex flex-col gap-2 max-w-xs mx-auto">
+                                                <div className="text-center">
+                                                    <span className="text-xs font-medium text-gray-700 block mb-1">Net Work</span>
+                                                    <span className="bg-green-100 text-green-600 px-2 py-1 rounded-md text-xs inline-block w-full text-center">
+                                                        {emp.total_time}
+                                                    </span>
+                                                </div>
+
+                                                <div className="text-center">
+                                                    <span className="text-xs font-medium text-gray-700 block mb-1">Break Time</span>
+                                                    <span className="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-md text-xs inline-block w-full text-center">
+                                                        {emp.total_break_time}
+                                                    </span>
+                                                </div>
+
+                                                <div className="text-center">
+                                                    <span className="text-xs font-medium text-gray-700 block mb-1">Total Time</span>
+                                                    <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs inline-block w-full text-center">
+                                                        {emp.total_work_time}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         ) : (
-                                            <div className="text-xs space-y-1">
-                                                <p>In: {emp.clock_in ? new Date(emp.clock_in).toLocaleTimeString() : "Not clocked in"}</p>
-                                                <p>Break: {emp.break_time || "0 min"}</p>
+                                            <div className="flex items-center space-x-2">
+                                                <div className="flex-shrink-0 w-2 h-2 bg-yellow-400 rounded-full"></div>
+                                                <span className="text-xs">
+                                                    In: {emp.clock_in ? new Date(emp.clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Not clocked in"}
+                                                </span>
                                             </div>
                                         )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-3 py-1 inline-flex text-xs font-semibold rounded-full ${getStatusColor(emp.status)}`}>
-                                            {emp.status === "active" ? "Active" : emp.status === "inactive" ? "On Break" : emp.status === "not-present" ? "Inactive" : emp.status === "day-over" ? "Finished" : emp.status || "Unknown"}
+                                        <span className={`px-3 py-1 inline-flex text-xs font-semibold rounded-full ${getStatusColor(emp.attendance_status)}`}>
+                                            {emp.attendance_status === "active" ? "Active" : emp.attendance_status === "inactive" ? "On Break" : emp.attendance_status === "not-present" ? "Inactive" : emp.attendance_status === "day-over" ? "Finished" : emp.attendance_status || "Unknown"}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -312,7 +391,7 @@ function ManageEmp() {
                                                 <Button
                                                     size="sm"
                                                     className="bg-green-500 text-white hover:bg-green-600"
-                                                    onClick={() => handleClock(emp.id, "clock_in", new Date().toISOString())}
+                                                    onClick={() => handleClockIn(emp.employee_id)}
                                                     disabled={!!emp.clock_in}
                                                 >
                                                     Clock In
@@ -320,15 +399,15 @@ function ManageEmp() {
                                                 <Button
                                                     size="sm"
                                                     className="bg-yellow-500 text-white hover:bg-yellow-600"
-                                                    onClick={() => handleBreak(emp.id)}
+                                                    onClick={() => handleBreak(emp.employee_id)}
                                                     disabled={!emp.clock_in || !!emp.clock_out}
                                                 >
-                                                    {emp.status === "active" ? "Break" : "Resume"}
+                                                    {emp.attendance_status === "active" ? "Break" : "Resume"}
                                                 </Button>
                                                 <Button
                                                     size="sm"
                                                     className="bg-red-500 text-white hover:bg-red-600"
-                                                    onClick={() => handleClock(emp.id, "clock_out", new Date().toISOString())}
+                                                    onClick={() => handleClockOut(emp.employee_id)}
                                                     disabled={!emp.clock_in || !!emp.clock_out}
                                                 >
                                                     Clock Out
@@ -356,16 +435,16 @@ function ManageEmp() {
                             Showing {filteredEmployees.length === 0 ? 0 : indexOfFirstEmployee + 1} to {Math.min(indexOfLastEmployee, filteredEmployees.length)} of {filteredEmployees.length} entries
                         </div>
                         <div className="flex space-x-2">
-                            <button 
+                            <button
                                 className={`px-3 py-1 border border-gray-300 rounded-md ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'} text-sm`}
                                 onClick={goToPrevPage}
                                 disabled={currentPage === 1}
                             >
                                 Previous
                             </button>
-                            
+
                             {pageNumbers.map(number => (
-                                <button 
+                                <button
                                     key={number}
                                     className={`px-3 py-1 border border-gray-300 rounded-md ${currentPage === number ? 'bg-blue-600 text-white' : 'bg-gray-50 hover:bg-gray-100 text-gray-700'} text-sm`}
                                     onClick={() => paginate(number)}
@@ -373,8 +452,8 @@ function ManageEmp() {
                                     {number}
                                 </button>
                             ))}
-                            
-                            <button 
+
+                            <button
                                 className={`px-3 py-1 border border-gray-300 rounded-md ${currentPage === totalPages || totalPages === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'} text-sm`}
                                 onClick={goToNextPage}
                                 disabled={currentPage === totalPages || totalPages === 0}
@@ -387,8 +466,8 @@ function ManageEmp() {
             ) : (
                 <p className="text-center py-8">No employees found...</p>
             )}
-            
-            <FormPane 
+
+            <FormPane
                 isOpen={isFormOpen}
                 onClose={handleCloseForm}
                 onSubmit={handleFormSubmit}
