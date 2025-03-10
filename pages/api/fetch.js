@@ -1,4 +1,4 @@
-
+import toast from "react-hot-toast";
 import sendRequest from './send-request'
 const BASE_PATH = '/employees'
 
@@ -16,6 +16,11 @@ export async function createEmployee(values) {
           method: "POST",
           body: JSON.stringify(values),
       });
+      if(data.success){
+        toast.success("Employee Boarded")
+      }else{
+        toast.error("Email Already Exists")
+      }
       console.log("data->",data);
       return data;
   } catch (error) {
@@ -80,6 +85,7 @@ export async function empBreakStart(id){
 }
 export async function empBreakEnd(id){
   try{
+    
     console.log("Ending break for employee ", id);
     return sendRequest(`${BASE_PATH}/break-end/${id}`,{
       method:'PUT'
@@ -91,4 +97,26 @@ export async function empBreakEnd(id){
 
 
 
+export async function getDatewiseAttendance(date) {
+  try {
+    const token = localStorage.getItem('token'); // Ensure the token is stored correctly
+    console.log("Token:", token);
+
+    if (!token) {
+      console.error("No token found in localStorage!");
+      return null;
+    }
+
+    return await sendRequest(`${BASE_PATH}/daily-attendance?date=${date}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,  
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (e) {
+    console.error("Error fetching attendance:", e);
+    return null;
+  }
+}
 

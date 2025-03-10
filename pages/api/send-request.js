@@ -11,6 +11,9 @@ const getRootUrl = "http://localhost:4000"
 // }
  console.log("Inside");
 export default async function sendRequest(path, opts = {}) {
+    const token = localStorage.getItem('token'); // Ensure the token is stored correctly
+    console.log("Token:", token);
+
     console.log("Here-also");
     console.log(`Link -> ${getRootUrl}${path}`);
     // const authToken = getCookie('authToken')
@@ -20,14 +23,10 @@ export default async function sendRequest(path, opts = {}) {
 
     const headers = Object.assign({}, opts.headers || {}, {
         'Content-type': 'application/json; charset=UTF-8',
-        // Authorization: `Bearer ${authToken}`,
+        Authorization: `Bearer ${token}`,
     })
- 
-
         // const response = await fetch('http://localhost:4000/employees');
        try{
-
-       
         const response = await fetch(
             `${getRootUrl}${path}`,
             Object.assign({ method: 'POST', credentials: 'same-origin' }, opts, {

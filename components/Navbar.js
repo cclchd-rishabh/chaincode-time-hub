@@ -33,7 +33,7 @@ function Navbar() {
             {isOpen && (
                 <ul className="md:hidden bg-gray-100 py-4 px-6 space-y-3">
                     <li><Link href="/" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Home</Link></li>
-                    <li><Link href="/m" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Work Time</Link></li>
+                    <li><Link href="/manage-emp" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Work Time</Link></li>
                     <li><Link href="/add-emp" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Employee Module</Link></li>
                 </ul>
             )}

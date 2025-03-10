@@ -2,50 +2,63 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Search, MoreVertical, Edit, ChevronDown } from "lucide-react";
 import { FormPane } from "./FormPane";
-import { createEmployee, getAllEmployees, empClockedIn, empClockedOut, empBreakStart, empBreakEnd } from "/pages/api/fetch";
+import { createEmployee, empClockedIn, empClockedOut, empBreakStart, empBreakEnd, getDatewiseAttendance } from "/pages/api/fetch";
 import * as XLSX from "xlsx";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
 function ManageEmp() {
+    // Get date from URL param if available, otherwise use current date
+    const getInitialDate = () => {
+        if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dateParam = urlParams.get('date');
+            if (dateParam) {
+                const parsedDate = new Date(dateParam);
+                return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+            }
+        }
+        return new Date();
+    };
+
     const [employees, setEmployees] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [entriesPerPage, setEntriesPerPage] = useState(5);
+    const [entriesPerPage, setEntriesPerPage] = useState(15);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+    const [selectedDate, setSelectedDate] = useState(getInitialDate);
+    const [attendanceData, setAttendanceData] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [refresh, setRefresh] = useState(false);
 
-const exportToExcel = (data, fileName = "Employee_Attendance.xlsx") => {
-    if (!data || data.length === 0) {
-        alert("No data available to export.");
-        return;
-    }
-    console.log("consoled")
-    // Map JSON to a simplified structure (only required fields)
-    const formattedData = data.map(emp => ({
-        "Employee ID": emp.employee_id,
-        "First Name": emp.first_name,
-        "Last Name": emp.last_name,
-        "Email": emp.email,
-        "Department": emp.department,
-        "Role": emp.role,
-        "Attendance Date": emp.attendance_date?.split(" ")[0] || "N/A", // Extracts only date
-        "Clock In": emp.clock_in || "N/A",
-        "Clock Out": emp.clock_out || "N/A",
-        "Total Work Time": emp.total_work_time || "00:00:00",
-        "Total Break Time": emp.total_break_time || "00:00:00",
-        "Status": emp.attendance_status || "N/A",
-    }));
+    const exportToExcel = (data, fileName = "Employee_Attendance.xlsx") => {
+        if (!data || data.length === 0) {
+            alert("No data available to export.");
+            return;
+        }
+        console.log("consoled")
+        // Map JSON to a simplified structure (only required fields)
+        const formattedData = data.map(emp => ({
+            "Employee ID": emp.employee_id,
+            "First Name": emp.first_name,
+            "Last Name": emp.last_name,
+            "Email": emp.email,
+            "Department": emp.department,
+            "Role": emp.role,
+            "Attendance Date": emp.attendance_date?.split(" ")[0] || "N/A", // Extracts only date
+            "Clock In": emp.clock_in || "N/A",
+            "Clock Out": emp.clock_out || "N/A",
+            "Total Work Time": emp.total_work_time || "00:00:00",
+            "Total Break Time": emp.total_break_time || "00:00:00",
+            "Status": emp.attendance_status || "N/A",
+        }));
 
-    // Create worksheet and workbook
-    const worksheet = XLSX.utils.json_to_sheet(formattedData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
-
-    // Create and trigger the download
-    XLSX.writeFile(workbook, fileName);
-};
-
-    const fetchEmployees = async () => {
-        const data = await getAllEmployees();
-        console.log("data", data);
-        setEmployees(data);
+        // Create worksheet and workbook
+        const worksheet = XLSX.utils.json_to_sheet(formattedData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
+        XLSX.writeFile(workbook, fileName);
     };
 
     const handleFormSubmit = async (formData) => {
@@ -53,15 +66,53 @@ const exportToExcel = (data, fileName = "Employee_Attendance.xlsx") => {
             const data = await createEmployee(formData);
             console.log("next-line");
             setIsFormOpen(false);
-            await fetchEmployees();
+            await fetchAttendanceData(selectedDate);
         } catch (error) {
             console.error("Error creating employee:", error);
         }
     };
 
+    const fetchAttendanceData = async (date = new Date()) => {
+        setLoading(true);
+        setError(null);
+        
+        try {
+            const dateString = date.toISOString().split('T')[0];
+            console.log("Fetching attendance for date:", dateString);
+            
+            const data = await getDatewiseAttendance(dateString);
+            console.log("Attendance data:", data);
+            setEmployees(data);
+        } catch (error) {
+            setError("Failed to fetch attendance data.");
+            console.error("Error fetching attendance:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Update URL when date changes
+    const updateUrlWithDate = (date) => {
+        if (typeof window !== 'undefined') {
+            const dateStr = date.toISOString().split('T')[0];
+            const url = new URL(window.location);
+            url.searchParams.set('date', dateStr);
+            window.history.pushState({}, '', url);
+        }
+    };
+
     useEffect(() => {
-        fetchEmployees();
-    }, []);
+        if (selectedDate) {
+            fetchAttendanceData(selectedDate);
+            updateUrlWithDate(selectedDate);
+        } else {
+            // If no date is selected, use today's date
+            const today = new Date();
+            setSelectedDate(today);
+            fetchAttendanceData(today);
+            updateUrlWithDate(today);
+        }
+    }, [selectedDate, refresh]);
 
     useEffect(() => {
         // Reset to first page when entries per page changes or when search query changes
@@ -76,18 +127,8 @@ const exportToExcel = (data, fileName = "Employee_Attendance.xlsx") => {
         setIsFormOpen(false);
     };
 
-
-
-    // const handleBreak = async (id) => {
-    //     console.log(employees);
-    //     if(employees.id.break_status == 'false'){
-    //         breakStart(id);
-    //     }else{
-    //         breakEnd(id);
-    //     }
-    // };
     const handleBreak = async (id) => {
-        console.log(employees); // Debugging step to check employees data
+        console.log("Handle Break ke ander -> " ,employees); // Debugging step to check employees data
 
         // Find the employee in the array
         const employee = employees.find(emp => emp.employee_id === id);
@@ -102,72 +143,34 @@ const exportToExcel = (data, fileName = "Employee_Attendance.xlsx") => {
             console.log(employee.break_status);
             console.log("start-break ke code mai");
             await breakStart(employee.attendance_id);
-            fetchEmployees();
+            await fetchAttendanceData(selectedDate);
         } else {
             console.log(employee.break_status);
             console.log("end-break ke code mai");
             await breakEnd(employee.attendance_id);
-            fetchEmployees();
+            await fetchAttendanceData(selectedDate);
         }
     };
 
     async function breakEnd(id) {
         try {
             const res = await empBreakEnd(id);
+            setRefresh(!refresh);
             console.log(res);
         } catch (e) {
             console.log(e);
         }
     }
+
     async function breakStart(id) {
         try {
             const res = await empBreakStart(id);
+            setRefresh(!refresh);
             console.log(res);
         } catch (e) {
-            console.log(e)
+            console.log(e);
         }
     }
-
-    const handleClock = async (id) => {
-        try {
-            if (type === "clock_out") {
-                const status = "day-over";
-                toggleBreakStatus(id, null, status);
-            }
-            else {
-                const status = type;
-                toggleBreakStatus(id, null, status);
-            }
-            console.log(`Making PUT request to /api/fetch?id=${id} with body:`, { [type]: true });
-            const response = await fetch(`/api/fetch?id=${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ [type]: true }),
-            });
-            if (!response.ok) throw new Error("Failed to update time");
-            await fetchEmployees();
-        } catch (error) {
-            console.error("Error updating time:", error);
-        }
-    };
-
-    // const toggleBreakStatus = async (id, attendance, currentStatus) => {
-    //     try {
-    //         console.log(currentStatus);
-    //         const response = await fetch(`/api/fetch?id=${id}`, {
-    //             method: "PUT",
-    //             headers: { "Content-Type": "application/json" },
-    //             body: JSON.stringify({
-    //                 status: currentStatus,
-    //                 attendance_id: attendance
-    //             }),
-    //         });
-    //         if (!response.ok) throw new Error("Failed to update break status");
-    //         await fetchEmployees();
-    //     } catch (error) {
-    //         console.error("Error updating break status:", error);
-    //     }
-    // };
 
     // Filter employees based on search query
     const filteredEmployees = employees.filter(emp =>
@@ -221,22 +224,28 @@ const exportToExcel = (data, fileName = "Employee_Attendance.xlsx") => {
         try {
             console.log("Handle Clock in");
             const res = await empClockedIn(id);
-            await fetchEmployees();
-            console.log(res);
-        } catch (e) {
-            console.error(e)
-        }
-    }
-    async function handleClockOut(id) {
-        try {
-            console.log("Handle Clock out");
-            const res = await empClockedOut(id);
-            await fetchEmployees();
+            setRefresh(!refresh);
             console.log(res);
         } catch (e) {
             console.error(e);
         }
     }
+
+    async function handleClockOut(id) {
+        try {
+            console.log("Handle Clock out");
+            const res = await empClockedOut(id);
+            setRefresh(!refresh);
+            console.log(res);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // Function to handle date change
+    const handleDateChange = (date) => {
+        setSelectedDate(date);
+    };
 
     return (
         <div className="w-full mx-auto p-6 bg-white shadow">
@@ -251,6 +260,8 @@ const exportToExcel = (data, fileName = "Employee_Attendance.xlsx") => {
                         Add New Record
                     </Button>
                 </div>
+            </div>
+            <div className=" mx-auto bg-white rounded-lg shadow-md">
             </div>
 
             {/* Table controls */}
@@ -273,7 +284,28 @@ const exportToExcel = (data, fileName = "Employee_Attendance.xlsx") => {
                     </div>
                     <span className="text-black ml-2">entries</span>
                 </div>
+                <div>
+                    <h2 className="text-sm font-semibold mb-1">Select Date for Attendance</h2>
+                    
+                    {/* Date Picker */}
+                    <div className="mb-6">
+                        <DatePicker
+                            selected={selectedDate}
+                            onChange={handleDateChange}
+                            dateFormat="yyyy-MM-dd"
+                            maxDate={new Date()}
+                            className="p-2 border rounded-lg"
+                        />
+                    </div>
+                
+                    {/* Loading / Error */}
+                    {loading && <p className="text-blue-500">Loading attendance...</p>}
+                    {error && <p className="text-red-500">{error}</p>}
+                </div>
                 <div className="relative w-full sm:w-auto">
+                    <div>
+                        
+                    </div>
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <span className="text-gray-500">Search:</span>
                     </div>

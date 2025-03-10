@@ -19,21 +19,6 @@ function EmpEdit() {
         return `${firstName?.[0] || ''}${lastName?.[0] || ''}`;
     };
 
-    // Helper function for status color
-    const getStatusColor = (status) => {
-        switch (status) {
-            case "active":
-                return "bg-green-100 text-green-700";
-            case "inactive":
-                return "bg-yellow-100 text-yellow-700";
-            case "not-present":
-                return "bg-gray-100 text-gray-700";
-            case "day-over":
-                return "bg-blue-100 text-blue-700";
-            default:
-                return "bg-gray-100 text-gray-700";
-        }
-    };
 
     const fetchEmployees = async () => {
         try {
@@ -45,7 +30,7 @@ function EmpEdit() {
     };
 
     useEffect(() => {
-        // Reset to first page when entries per page changes or when search query changes
+      
         setCurrentPage(1);
     }, [entriesPerPage, searchQuery]);
     

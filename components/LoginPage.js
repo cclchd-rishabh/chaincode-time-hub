@@ -1,5 +1,3 @@
-// app/page.js
-'use client';
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -7,13 +5,16 @@ import { FaEye, FaEyeSlash, FaFacebookF } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { FaGithub } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
+import {loginUser} from '/pages/api/auth';
+import {useRouter} from 'next/router'
 
 export default function LoginPage() {
+    // const navigate = useNavigate();
+    const Router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-        rememberMe: false
+        username: '',
+        password: ''
     });
 
     const handleChange = (e) => {
@@ -24,10 +25,25 @@ export default function LoginPage() {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
-        // Add your authentication logic here
+        try {
+            const res = await loginUser(formData);
+            console.log("User -> ", res);
+
+            const { access_token } = res;
+            
+            if (access_token) {
+                localStorage.setItem('token', access_token);
+                console.log(access_token);
+                Router.push('/manage-emp');
+            } else {
+                console.error("No access token received");
+            }
+        } catch (error) {
+            console.error("Login failed:", error);
+        
+        }
     };
 
     return (
@@ -123,15 +139,15 @@ export default function LoginPage() {
 
                     <form onSubmit={handleSubmit}>
                         <div className="mb-4">
-                            <label htmlFor="email" className="block text-gray-700 mb-2">Email or Username</label>
+                            <label htmlFor="email" className="block text-gray-700 mb-2">Username</label>
                             <input
                                 type="text"
-                                id="email"
-                                name="email"
-                                value={formData.email}
+                                id="username"
+                                name="username"
+                                value={formData.username}
                                 onChange={handleChange}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                placeholder="Enter your email or username"
+                                placeholder="username"
                                 required
                             />
                         </div>
@@ -182,14 +198,15 @@ export default function LoginPage() {
                                 Forgot Password?
                             </Link>
                         </div>
-                        <Link href="/manage-emp">
+                    
                         <button
+                        onClick={handleSubmit}
                             type="submit"
                             className="w-full bg-indigo-500 text-white py-3 rounded-lg hover:bg-indigo-600 transition duration-300"
                         >
                             Sign in
                         </button>
-                        </Link>
+                       
                     </form>
 
                     <div className="mt-6 text-center">
