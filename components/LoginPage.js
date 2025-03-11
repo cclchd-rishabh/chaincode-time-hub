@@ -7,11 +7,14 @@ import { FaGithub } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import {loginUser} from '/pages/api/auth';
 import {useRouter} from 'next/router'
+import { useAuth } from './context/AuthContext'; 
+
 
 export default function LoginPage() {
     // const navigate = useNavigate();
     const Router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
+    const {isAuthenticated,login} = useAuth();
     const [formData, setFormData] = useState({
         username: '',
         password: ''
@@ -40,7 +43,7 @@ export default function LoginPage() {
     
             sessionStorage.setItem('token', access_token);
             console.log("Access Token:", access_token);
-    
+            login(access_token);
           
             Router.push('/manage-emp');
         } catch (error) {

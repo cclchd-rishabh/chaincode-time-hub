@@ -1,21 +1,17 @@
+// components/Layout.js
+import React from 'react';
 import Navbar from './Navbar';
-import { useState ,useEffect} from 'react';
+import { AuthProvider } from './context/AuthContext'
+
 function Layout({ children }) {
-
-  const [isAuthenticated,setIsAuthenticated]= useState(false);
-    useEffect(()=>{
-        if (typeof window !== "undefined") {
-            const token = sessionStorage.getItem("token");
-            setIsAuthenticated(!!token); 
-        }
-    },[isAuthenticated])
-
   return (
-    <div>
-      <Navbar />
-      {children}
-    </div>
+    <AuthProvider>
+      <div>
+        <Navbar />
+        {children}
+      </div>
+    </AuthProvider>
   );
 }
 
-export default Layout
+export default Layout;
