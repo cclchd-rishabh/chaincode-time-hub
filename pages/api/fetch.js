@@ -99,11 +99,12 @@ export async function empBreakEnd(id){
 
 export async function getDatewiseAttendance(date) {
   try {
-    const token = localStorage.getItem('token'); // Ensure the token is stored correctly
+    const token = sessionStorage.getItem('token'); // Ensure the token is stored correctly
     console.log("Token:", token);
 
     if (!token) {
-      console.error("No token found in localStorage!");
+      toast.error("Not Authorized");
+      console.error("No token found in sessionStorage!");
       return null;
     }
 

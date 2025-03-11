@@ -1,4 +1,5 @@
 import 'isomorphic-unfetch'
+import toast from "react-hot-toast";
 // import { getRootUrl, getMVSUrl } from './getRootUrl'
 // const axios = require('axios')
  
@@ -11,13 +12,14 @@ const getRootUrl = "http://localhost:4000"
 // }
  console.log("Inside");
 export default async function sendRequest(path, opts = {}) {
-    const token = localStorage.getItem('token'); // Ensure the token is stored correctly
+    const token = sessionStorage.getItem('token'); // Ensure the token is stored correctly
     console.log("Token:", token);
 
     console.log("Here-also");
     console.log(`Link -> ${getRootUrl}${path}`);
     // const authToken = getCookie('authToken')
-    // if (!authToken) {
+    // if (token==null) {
+    //     console.log("Token not found");
     //     throw new Error('Auth token not found')
     // }
 
@@ -26,23 +28,22 @@ export default async function sendRequest(path, opts = {}) {
         Authorization: `Bearer ${token}`,
     })
         // const response = await fetch('http://localhost:4000/employees');
-       try{
+    
         const response = await fetch(
             `${getRootUrl}${path}`,
             Object.assign({ method: 'POST', credentials: 'same-origin' }, opts, {
                 headers,
             }),
         )
-        const data = await response.json()
-        // console.log(data);
-        return data
-    }catch(e){
-        console.error("Error from sendRequest ",e);
-    }
+    const data = await response.json()
         
-    // if (response.status !== 201) {
-    //     throw response
-    // }
- 
+
+    
+    if (response.status == 403) {
+        toast.error("You are not authorized to perform this task");
+    }
+    
+    console.log(data);
+    return data
 
 }

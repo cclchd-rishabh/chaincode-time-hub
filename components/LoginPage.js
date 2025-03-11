@@ -25,26 +25,29 @@ export default function LoginPage() {
         });
     };
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const res = await loginUser(formData);
-            console.log("User -> ", res);
-
-            const { access_token } = res;
             
-            if (access_token) {
-                localStorage.setItem('token', access_token);
-                console.log(access_token);
-                Router.push('/manage-emp');
-            } else {
+            if (!res || !res.access_token) {
                 console.error("No access token received");
+                return;
             }
+    
+            const { access_token } = res;
+    
+            sessionStorage.setItem('token', access_token);
+            console.log("Access Token:", access_token);
+    
+          
+            Router.push('/manage-emp');
         } catch (error) {
-            console.error("Login failed:", error);
-        
+            console.error("Login failed:", error.message || error);
         }
     };
+    
 
     return (
         <div className="min-h-screen flex bg-gray-50">

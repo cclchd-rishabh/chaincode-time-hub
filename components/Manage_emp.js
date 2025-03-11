@@ -20,7 +20,7 @@ function ManageEmp() {
         }
         return new Date();
     };
-
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [employees, setEmployees] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [entriesPerPage, setEntriesPerPage] = useState(15);
@@ -102,6 +102,10 @@ function ManageEmp() {
     };
 
     useEffect(() => {
+        if (typeof window !== "undefined") {
+            const token = sessionStorage.getItem("token");
+            setIsAuthenticated(!!token); // Convert token existence to boolean
+          }
         if (selectedDate) {
             fetchAttendanceData(selectedDate);
             updateUrlWithDate(selectedDate);
