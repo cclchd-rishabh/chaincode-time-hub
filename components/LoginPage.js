@@ -184,25 +184,13 @@ export default function LoginPage() {
                         </div>
 
                         <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id="rememberMe"
-                                    name="rememberMe"
-                                    checked={formData.rememberMe}
-                                    onChange={handleChange}
-                                    className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                                />
-                                <label htmlFor="rememberMe" className="ml-2 block text-gray-700">
-                                    Remember Me
-                                </label>
-                            </div>
-                            <Link
+                            
+                            {/* <Link
                                 href="/forgot-password"
                                 className="text-indigo-600 hover:text-indigo-800"
                             >
                                 Forgot Password?
-                            </Link>
+                            </Link> */}
                         </div>
                     
                         <button
@@ -216,14 +204,14 @@ export default function LoginPage() {
                     </form>
 
                     <div className="mt-6 text-center">
-                        <p className="text-gray-600">
+                        {/* <p className="text-gray-600">
                             New on our platform?{' '}
                             <Link href="/register" className="text-indigo-600 hover:text-indigo-800">
                                 Create an account
                             </Link>
-                        </p>
+                        </p> */}
 
-                        <div className="mt-6">
+                        {/* <div className="mt-6">
                             <p className="text-gray-500 mb-4">or</p>
                             <div className="flex justify-center space-x-4">
                                 <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-50">
@@ -239,7 +227,7 @@ export default function LoginPage() {
                                     <FcGoogle size={18} />
                                 </button>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* Buy Now button for mobile view */}

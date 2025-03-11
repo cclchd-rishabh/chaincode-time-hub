@@ -32,7 +32,7 @@ function ManageEmp() {
     const [error, setError] = useState(null);
     const [refresh, setRefresh] = useState(false);
 
-    const exportToExcel = (data, fileName = "Employee_Attendance.xlsx") => {
+    const exportToExcel = (data, fileName = `Employee_Attendance_${selectedDate}.xlsx`) => {
         if (!data || data.length === 0) {
             alert("No data available to export.");
             return;
@@ -328,9 +328,9 @@ function ManageEmp() {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr className="bg-gray-50">
-                                <th className="w-12 px-6 py-3 text-left">
+                                {/* <th className="w-12 px-6 py-3 text-left">
                                     <input type="checkbox" className="h-4 w-4" />
-                                </th>
+                                </th> */}
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     NAME
                                 </th>
@@ -354,9 +354,9 @@ function ManageEmp() {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {currentEmployees.map((emp) => (
                                 <tr key={emp.employee_id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    {/* <td className="px-6 py-4 whitespace-nowrap">
                                         <input type="checkbox" className="h-4 w-4" />
-                                    </td>
+                                    </td> */}
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
                                             {emp.avatar ? (
