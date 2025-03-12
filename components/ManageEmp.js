@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Search, MoreVertical, Edit, ChevronDown } from "lucide-react";
+import { Search, Download, Plus, ArrowLeft, ArrowRight, Clock, Coffee, LogOut } from "lucide-react";
 import { FormPane } from "./FormPane";
 import { createEmployee, empClockedIn, empClockedOut, empBreakStart, empBreakEnd, getDatewiseAttendance } from "/pages/api/fetch";
 import * as XLSX from "xlsx";
@@ -20,6 +20,7 @@ function ManageEmp() {
         }
         return new Date();
     };
+
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [employees, setEmployees] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -32,12 +33,12 @@ function ManageEmp() {
     const [error, setError] = useState(null);
     const [refresh, setRefresh] = useState(false);
 
-    const exportToExcel = (data, fileName = `Employee_Attendance_${selectedDate}.xlsx`) => {
+    const exportToExcel = (data, fileName = `Employee_Attendance_${selectedDate.toISOString().split('T')[0]}.xlsx`) => {
         if (!data || data.length === 0) {
             alert("No data available to export.");
             return;
         }
-        console.log("consoled")
+
         // Map JSON to a simplified structure (only required fields)
         const formattedData = data.map(emp => ({
             "Employee ID": emp.employee_id,
@@ -63,8 +64,7 @@ function ManageEmp() {
 
     const handleFormSubmit = async (formData) => {
         try {
-            const data = await createEmployee(formData);
-            console.log("next-line");
+            await createEmployee(formData);
             setIsFormOpen(false);
             await fetchAttendanceData(selectedDate);
         } catch (error) {
@@ -74,13 +74,10 @@ function ManageEmp() {
 
     const fetchAttendanceData = async (date = new Date()) => {
         setLoading(true);
-        setError(null)  ;
+        setError(null);
         try {
             const dateString = date.toISOString().split('T')[0];
-            console.log("Fetching attendance for date:", dateString);
-            
             const data = await getDatewiseAttendance(dateString);
-            console.log("Attendance data:", data);
             setEmployees(data);
         } catch (error) {
             setError("Failed to fetch attendance data.");
@@ -104,7 +101,7 @@ function ManageEmp() {
         if (typeof window !== "undefined") {
             const token = sessionStorage.getItem("token");
             setIsAuthenticated(!!token); // Convert token existence to boolean
-          }
+        }
         if (selectedDate) {
             fetchAttendanceData(selectedDate);
             updateUrlWithDate(selectedDate);
@@ -131,8 +128,6 @@ function ManageEmp() {
     };
 
     const handleBreak = async (id) => {
-        console.log("Handle Break ke ander -> " ,employees); // Debugging step to check employees data
-
         // Find the employee in the array
         const employee = employees.find(emp => emp.employee_id === id);
 
@@ -143,35 +138,28 @@ function ManageEmp() {
 
         // Ensure break_status exists before checking it
         if (employee.break_status === null || employee.break_status === "false" || employee.break_status === "completed") {
-            console.log(employee.break_status);
-            console.log("start-break ke code mai");
             await breakStart(employee.attendance_id);
-            await fetchAttendanceData(selectedDate);
         } else {
-            console.log(employee.break_status);
-            console.log("end-break ke code mai");
             await breakEnd(employee.attendance_id);
-            await fetchAttendanceData(selectedDate);
         }
+        await fetchAttendanceData(selectedDate);
     };
 
     async function breakEnd(id) {
         try {
-            const res = await empBreakEnd(id);
+            await empBreakEnd(id);
             setRefresh(!refresh);
-            console.log(res);
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
     }
 
     async function breakStart(id) {
         try {
-            const res = await empBreakStart(id);
+            await empBreakStart(id);
             setRefresh(!refresh);
-            console.log(res);
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
     }
 
@@ -225,10 +213,8 @@ function ManageEmp() {
 
     async function handleClockIn(id) {
         try {
-            console.log("Handle Clock in");
-            const res = await empClockedIn(id);
+            await empClockedIn(id);
             setRefresh(!refresh);
-            console.log(res);
         } catch (e) {
             console.error(e);
         }
@@ -236,10 +222,8 @@ function ManageEmp() {
 
     async function handleClockOut(id) {
         try {
-            console.log("Handle Clock out");
-            const res = await empClockedOut(id);
+            await empClockedOut(id);
             setRefresh(!refresh);
-            console.log(res);
         } catch (e) {
             console.error(e);
         }
@@ -251,239 +235,296 @@ function ManageEmp() {
     };
 
     return (
-        <div className="w-full mx-auto p-6 bg-white shadow">
-            {/* Header with title and action buttons */}
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-xl font-bold text-gray-800">Validating Peers</h1>
-                <div className="flex gap-2">
-                    <Button variant="outline" className="flex items-center text-white gap-2 bg-blue-600 hover:bg-blue-700 hover:text-white" onClick={() => exportToExcel(employees)}>
-                        Export 
-                    </Button>
-                    <Button onClick={handleOpenForm} className="bg-blue-600 hover:bg-blue-700 text-white" >
-                        Add New Record
-                    </Button>
-                </div>
-            </div>
-            <div className=" mx-auto bg-white rounded-lg shadow-md">
-            </div>
-
-            {/* Table controls */}
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-               
-                <div>    
-                    {/* Date Picker */}
-                    <div className="mb-6">
-                        <DatePicker
-                            selected={selectedDate}
-                            onChange={handleDateChange}
-                            dateFormat="yyyy-MM-dd"
-                            maxDate={new Date()}
-                            className="p-2 border rounded-lg"
-                            placeholderText="Select Date"
-                        />
-                    </div>
-                
-                    {/* Loading / Error */}
-                    {loading && <p className="text-blue-500">Loading attendance...</p>}
-                    {error && <p className="text-red-500">{error}</p>}
-                </div>
-                <div className="relative w-full sm:w-auto">
+        <div className="w-full mx-auto p-6 bg-gray-50 min-h-screen">
+            <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-sm">
+                {/* Header with title and action buttons */}
+                <div className="flex flex-col sm:flex-row justify-between items-center p-6 border-b">
                     <div>
-                        
+                        <h1 className="text-2xl font-bold text-gray-800">Attendance Dashboard</h1>
+                        <p className="text-gray-500 mt-1">Track and manage employee time records</p>
                     </div>
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <span className="text-gray-500">Search:</span>
+                    <div className="flex gap-3 mt-4 sm:mt-0">
+                        <Button
+                            variant="outline"
+                            className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
+                            onClick={() => exportToExcel(employees)}
+                        >
+                            <Download size={16} />
+                            Export Data
+                        </Button>
+                        <Button
+                            onClick={handleOpenForm}
+                            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                        >
+                            <Plus size={16} />
+                            Add Record
+                        </Button>
                     </div>
-                    <input
-                        type="text"
-                        className="pl-20 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none w-full sm:w-64"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
                 </div>
-            </div>
 
-            {/* Data Table */}
-            {filteredEmployees.length > 0 ? (
+                {/* Filters and controls */}
+                <div className="p-6 border-b">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Select Date</label>
+                                <DatePicker
+                                    selected={selectedDate}
+                                    onChange={handleDateChange}
+                                    dateFormat="yyyy-MM-dd"
+                                    maxDate={new Date()}
+                                    className="p-2 border rounded-lg w-full shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    placeholderText="Select Date"
+                                />
+                            </div>
+
+
+                        </div>
+
+                        <div className="relative">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                            <div className="flex items-center relative">
+                                <input
+                                    type="text"
+                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full"
+                                    placeholder="Search employees..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <Search size={16} className="text-gray-400" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Loading / Error states */}
+                    {loading && (
+                        <div className="mt-4 flex items-center text-blue-600">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Loading attendance data...
+                        </div>
+                    )}
+                    {error && (
+                        <div className="mt-4 text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
+                            {error}
+                        </div>
+                    )}
+                </div>
+
+                {/* Data Table */}
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead>
-                            <tr className="bg-gray-50">
+                    {filteredEmployees.length > 0 ? (
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr className="bg-gray-50">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Name
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Email
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Time Status
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Status
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
 
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    NAME
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    EMAIL
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    TIME STATUS
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    STATUS
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    ACTIONS
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {currentEmployees.map((emp) => (
-                                <tr key={emp.employee_id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center">
-                                            {emp.avatar ? (
-                                                <img
-                                                    src={emp.avatar}
-                                                    alt={`${emp.first_name} ${emp.last_name}`}
-                                                    className="w-10 h-10 rounded-full object-cover"
-                                                />
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {currentEmployees.map((emp) => (
+                                    <tr key={emp.employee_id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                {emp.avatar ? (
+                                                    <img
+                                                        src={emp.avatar}
+                                                        alt={`${emp.first_name} ${emp.last_name}`}
+                                                        className="w-10 h-10 rounded-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-blue-600">
+                                                        {getInitials(emp.first_name, emp.last_name)}
+                                                    </div>
+                                                )}
+                                                <div className="ml-4">
+                                                    <div className="text-sm font-medium text-gray-900">{emp.first_name} {emp.last_name}</div>
+                                                    <div className="text-sm text-gray-500">{emp.role} {emp.department ? `- ${emp.department}` : ''}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {emp.email}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-500">
+                                            {emp.clock_out ? (
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-xs font-medium text-gray-700 mb-1">Net Work</span>
+                                                        <span className="bg-green-100 text-green-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
+                                                            {emp.total_time}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-xs font-medium text-gray-700 mb-1">Break</span>
+                                                        <span className="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
+                                                            {emp.total_break_time}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-xs font-medium text-gray-700 mb-1">Total</span>
+                                                        <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
+                                                            {emp.total_work_time}
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             ) : (
-                                                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-gray-300">
-                                                    {getInitials(emp.first_name, emp.last_name)}
+                                                <div className="flex items-center space-x-2">
+                                                    <div className={`flex-shrink-0 w-2 h-2 rounded-full ${emp.clock_in ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></div>
+                                                    <span className="text-sm">
+                                                        {emp.clock_in ? `Clocked in at ${emp.clock_in}` : "Not clocked in"}
+                                                    </span>
                                                 </div>
                                             )}
-                                            <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900">{emp.first_name} {emp.last_name}</div>
-                                                <div className="text-sm text-gray-500">{emp.role} {emp.department ? `- ${emp.department}` : ''}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {emp.email}
-                                    </td>
-                                    <td className="px-3 py-3 text-sm text-gray-500">
-                                        {emp.clock_out ? (
-                                            <div className="flex flex-col gap-2 max-w-xs mx-auto">
-                                                <div className="text-center">
-                                                    <span className="text-xs font-medium text-gray-700 block mb-1">Net Work</span>
-                                                    <span className="bg-green-100 text-green-600 px-2 py-1 rounded-md text-xs inline-block w-full text-center">
-                                                        {emp.total_time}
-                                                    </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(emp.attendance_status)}`}>
+                                                {emp.attendance_status === "active" ? "Active" :
+                                                    emp.attendance_status === "inactive" ? "On Break" :
+                                                        emp.attendance_status === "not-present" ? "Inactive" :
+                                                            emp.attendance_status === "day-over" ? "Finished" :
+                                                                emp.attendance_status || "Unknown"}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {!emp.clock_out ? (
+                                                <div className="flex space-x-2">
+                                                    <Button
+                                                        size="sm"
+                                                        className={`flex items-center gap-1 ${!!emp.clock_in ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600'}`}
+                                                        onClick={() => handleClockIn(emp.employee_id)}
+                                                        disabled={!!emp.clock_in}
+                                                    >
+                                                        <Clock size={14} />
+                                                        Clock In
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        className={`flex items-center gap-1 ${!emp.clock_in || !!emp.clock_out ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-yellow-500 text-white hover:bg-yellow-600'}`}
+                                                        onClick={() => handleBreak(emp.employee_id)}
+                                                        disabled={!emp.clock_in || !!emp.clock_out}
+                                                    >
+                                                        <Coffee size={14} />
+                                                        {emp.attendance_status === "active" ? "Break" : "Resume"}
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        className={`flex items-center gap-1 ${!emp.clock_in || !!emp.clock_out ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-red-500 text-white hover:bg-red-600'}`}
+                                                        onClick={() => handleClockOut(emp.employee_id)}
+                                                        disabled={!emp.clock_in || !!emp.clock_out}
+                                                    >
+                                                        <LogOut size={14} />
+                                                        Clock Out
+                                                    </Button>
                                                 </div>
-
-                                                <div className="text-center">
-                                                    <span className="text-xs font-medium text-gray-700 block mb-1">Break Time</span>
-                                                    <span className="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-md text-xs inline-block w-full text-center">
-                                                        {emp.total_break_time}
-                                                    </span>
+                                            ) : (
+                                                <div className="text-sm text-gray-500 italic">
+                                                    Day completed
                                                 </div>
-
-                                                <div className="text-center">
-                                                    <span className="text-xs font-medium text-gray-700 block mb-1">Total Time</span>
-                                                    <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs inline-block w-full text-center">
-                                                        {emp.total_work_time}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center space-x-2">
-                                                <div className="flex-shrink-0 w-2 h-2 bg-yellow-400 rounded-full"></div>
-                                                <span className="text-xs">
-                                                    In: {emp.clock_in ? emp.clock_in : "Not clocked in"}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-3 py-1 inline-flex text-xs font-semibold rounded-full ${getStatusColor(emp.attendance_status)}`}>
-                                            {emp.attendance_status === "active" ? "Active" : emp.attendance_status === "inactive" ? "On Break" : emp.attendance_status === "not-present" ? "Inactive" : emp.attendance_status === "day-over" ? "Finished" : emp.attendance_status || "Unknown"}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {!emp.clock_out ? (
-                                            <div className="flex space-x-2">
-                                                <Button
-                                                    size="sm"
-                                                    className="bg-green-500 text-white hover:bg-green-600"
-                                                    onClick={() => handleClockIn(emp.employee_id)}
-                                                    disabled={!!emp.clock_in}
-                                                >
-                                                    Clock In
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    className="bg-yellow-500 text-white hover:bg-yellow-600"
-                                                    onClick={() => handleBreak(emp.employee_id)}
-                                                    disabled={!emp.clock_in || !!emp.clock_out}
-                                                >
-                                                    {emp.attendance_status === "active" ? "Break" : "Resume"}
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    className="bg-red-500 text-white hover:bg-red-600"
-                                                    onClick={() => handleClockOut(emp.employee_id)}
-                                                    disabled={!emp.clock_in || !!emp.clock_out}
-                                                >
-                                                    Clock Out
-                                                </Button>
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center space-x-4">
-                                            </div>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-
-                    {/* Pagination controls */}
-                    <div className="mt-4 flex justify-between items-center">
-                    <div className="flex items-center mb-4 sm:mb-0">
-                    <span className="text-black mr-2">Show</span>
-                    <div className="relative">
-                        <select
-                            className="appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none"
-                            value={entriesPerPage}
-                            onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-                        >
-                            <option value={2}>2</option>
-                            <option value={5}>5</option>
-                            <option value={15}>15</option>
-                        </select>
-                        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                            <ChevronDown size={16} />
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-12">
+                            <div className="bg-gray-100 rounded-full p-4 mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                            </div>
+                            <p className="text-lg font-medium text-gray-600">No employees found</p>
+                            <p className="mt-1 text-gray-500">Try adjusting your search or date filters</p>
+                            <Button onClick={handleOpenForm} className="mt-4 bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
+                                <Plus size={16} />
+                                Add New Record
+                            </Button>
                         </div>
-                    </div>
-                    <span className="text-black ml-2">entries</span>
+                    )}
                 </div>
-                        <div className="text-sm text-gray-500">
-                            Showing {filteredEmployees.length === 0 ? 0 : indexOfFirstEmployee + 1} to {Math.min(indexOfLastEmployee, filteredEmployees.length)} of {filteredEmployees.length} entries
+
+                {/* Pagination */}
+                {filteredEmployees.length > 0 && (
+                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Show entries</label>
+                            <select
+                                className="appearance-none bg-white border border-gray-300 rounded-md px-2 py-1 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                value={entriesPerPage}
+                                onChange={(e) => setEntriesPerPage(Number(e.target.value))}
+                            >
+                                <option value={5}>5</option>
+                                <option value={10}>10</option>
+                                <option value={15}>15</option>
+                                <option value={25}>25</option>
+                            </select>
                         </div>
-                        <div className="flex space-x-2">
-                            <button
-                                className={`px-3 py-1 border border-gray-300 rounded-md ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'} text-sm`}
+                        <div className="text-sm text-gray-700 mb-4 sm:mb-0">
+                            Showing <span className="font-medium">{indexOfFirstEmployee + 1}</span> to <span className="font-medium">{Math.min(indexOfLastEmployee, filteredEmployees.length)}</span> of <span className="font-medium">{filteredEmployees.length}</span> entries
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className={`flex items-center gap-1 ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
                                 onClick={goToPrevPage}
                                 disabled={currentPage === 1}
                             >
+                                <ArrowLeft size={14} />
                                 Previous
-                            </button>
+                            </Button>
 
-                            {pageNumbers.map(number => (
-                                <button
-                                    key={number}
-                                    className={`px-3 py-1 border border-gray-300 rounded-md ${currentPage === number ? 'bg-blue-600 text-white' : 'bg-gray-50 hover:bg-gray-100 text-gray-700'} text-sm`}
-                                    onClick={() => paginate(number)}
-                                >
-                                    {number}
-                                </button>
-                            ))}
+                            <div className="flex items-center space-x-1">
+                                {pageNumbers.map(number => (
+                                    <Button
+                                        key={number}
+                                        variant={currentPage === number ? "default" : "outline"}
+                                        size="sm"
+                                        className={`min-w-[2.5rem] px-3 py-1 ${currentPage === number ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                                        onClick={() => paginate(number)}
+                                    >
+                                        {number}
+                                    </Button>
+                                ))}
+                            </div>
 
-                            <button
-                                className={`px-3 py-1 border border-gray-300 rounded-md ${currentPage === totalPages || totalPages === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'} text-sm`}
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className={`flex items-center gap-1 ${currentPage === totalPages || totalPages === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
                                 onClick={goToNextPage}
                                 disabled={currentPage === totalPages || totalPages === 0}
                             >
                                 Next
-                            </button>
+                                <ArrowRight size={14} />
+                            </Button>
                         </div>
                     </div>
-                </div>
-            ) : (
-                <p className="text-center py-8">No employees found...</p>
-            )}
+                )}
+            </div>
 
+            {/* Form Modal */}
             <FormPane
                 isOpen={isFormOpen}
                 onClose={handleCloseForm}
