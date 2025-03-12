@@ -39,8 +39,7 @@ function Navbar() {
                 
                 {isAuthenticated && (
                     <ul className="hidden md:flex space-x-6">
-                     
-                        <li><Link href="/manage-emp" className="text-black hover:text-blue-600">Work Time</Link></li>
+                        <li><Link href="/manage-emp" className="text-black hover:text-blue-600">Employee Management</Link></li>
                         <li><Link href="/add-emp" className="text-black hover:text-blue-600">Employee Module</Link></li>
                         <li><button className="text-black hover:text-blue-600" onClick={handleLogout}>
                             Logout
@@ -53,7 +52,7 @@ function Navbar() {
             {isAuthenticated && isOpen && (
                 <ul className="md:hidden bg-gray-100 py-4 px-6 space-y-3">
                     <li><Link href="/" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Home</Link></li>
-                    <li><Link href="/manage-emp" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Work Time</Link></li>
+                    <li><Link href="/manage-emp" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Employee Management</Link></li>
                     <li><Link href="/add-emp" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Employee Module</Link></li>
                     <li><button className="block text-gray-700 hover:text-blue-600" onClick={() => { handleLogout(); closeMenu(); }}>
                         Logout

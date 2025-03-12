@@ -42,6 +42,9 @@ export default async function sendRequest(path, opts = {}) {
     if (response.status == 403) {
         toast.error("You are not authorized to perform this task");
     }
+    if(response.status == 401){
+        toast.error("Incorrect Username / Password");
+    }
     
     console.log(data);
     return data

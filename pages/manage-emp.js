@@ -1,4 +1,4 @@
-import ManageEmp from '../components/Manage_emp';
+import ManageEmp from '../components/ManageEmp';
 export default function EditsRoute(){
     return(
     <ManageEmp/>

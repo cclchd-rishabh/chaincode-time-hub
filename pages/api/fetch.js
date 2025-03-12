@@ -85,7 +85,6 @@ export async function empBreakStart(id){
 }
 export async function empBreakEnd(id){
   try{
-    
     console.log("Ending break for employee ", id);
     return sendRequest(`${BASE_PATH}/break-end/${id}`,{
       method:'PUT'
