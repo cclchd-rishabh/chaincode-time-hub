@@ -270,9 +270,7 @@ function ManageEmp() {
             {/* Table controls */}
             <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
                
-                <div>
-                
-                    
+                <div>    
                     {/* Date Picker */}
                     <div className="mb-6">
                         <DatePicker
@@ -422,12 +420,6 @@ function ManageEmp() {
                                             </div>
                                         ) : (
                                             <div className="flex items-center space-x-4">
-                                                {/* <button className="text-gray-500 hover:text-gray-700">
-                                                    <MoreVertical size={18} />
-                                                </button>
-                                                <button className="text-blue-500 hover:text-blue-700">
-                                                    <Edit size={18} />
-                                                </button> */}
                                             </div>
                                         )}
                                     </td>
