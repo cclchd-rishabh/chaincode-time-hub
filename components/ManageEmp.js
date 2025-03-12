@@ -244,6 +244,31 @@ function ManageEmp() {
                         <p className="text-gray-500 mt-1">Track and manage employee time records</p>
                     </div>
                     <div className="flex gap-3 mt-4 sm:mt-0">
+
+                        <div className="flex items-center gap-4">
+                            <div>
+                                {/* <label className="block text-sm font-medium text-gray-700 mb-1">Select Date</label> */}
+                                <DatePicker
+                                    selected={selectedDate}
+                                    onChange={handleDateChange}
+                                    dateFormat="yyyy-MM-dd"
+                                    maxDate={new Date()}
+                                    className="p-2 border rounded-lg w-full shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex items-center relative">
+                            <input
+                                type="text"
+                                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full"
+                                placeholder="Search employees..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <Search size={16} className="text-gray-400" />
+                            </div>
+                        </div>
                         <Button
                             variant="outline"
                             className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
@@ -252,68 +277,28 @@ function ManageEmp() {
                             <Download size={16} />
                             Export Data
                         </Button>
-                        <Button
-                            onClick={handleOpenForm}
-                            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-                        >
-                            <Plus size={16} />
-                            Add Record
-                        </Button>
+                        {loading && (
+                            <div className="mt-4 flex items-center text-blue-600">
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Loading attendance data...
+                            </div>
+                        )}
+                        {error && (
+                            <div className="mt-4 text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
+                                {error}
+                            </div>
+                        )}
+
                     </div>
                 </div>
 
                 {/* Filters and controls */}
-                <div className="p-6 border-b">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Select Date</label>
-                                <DatePicker
-                                    selected={selectedDate}
-                                    onChange={handleDateChange}
-                                    dateFormat="yyyy-MM-dd"
-                                    maxDate={new Date()}
-                                    className="p-2 border rounded-lg w-full shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                    placeholderText="Select Date"
-                                />
-                            </div>
-
-
-                        </div>
-
-                        <div className="relative">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-                            <div className="flex items-center relative">
-                                <input
-                                    type="text"
-                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full"
-                                    placeholder="Search employees..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                    <Search size={16} className="text-gray-400" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Loading / Error states */}
-                    {loading && (
-                        <div className="mt-4 flex items-center text-blue-600">
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Loading attendance data...
-                        </div>
-                    )}
-                    {error && (
-                        <div className="mt-4 text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
-                            {error}
-                        </div>
-                    )}
-                </div>
+                {/* <div className="p-6 border-b">
+                 
+                </div> */}
 
                 {/* Data Table */}
                 <div className="overflow-x-auto">
