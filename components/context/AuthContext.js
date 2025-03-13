@@ -1,28 +1,22 @@
-// context/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
-// Create the context
+
 const AuthContext = createContext();
 
 // Create a provider component
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  // Check for token on initial load and when isAuthenticated changes
-  useEffect(() => {
+ 
+useEffect(() => {
     if (typeof window !== "undefined") {
       const token = sessionStorage.getItem("token");
       setIsAuthenticated(!!token);
     }
-  }, []);
-
-  // Function to handle login
+}, []);
   const login = (token) => {
     sessionStorage.setItem("token", token);
     setIsAuthenticated(true);
   };
-
-  // Function to handle logout
   const logout = () => {
     sessionStorage.removeItem("token");
     

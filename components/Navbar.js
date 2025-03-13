@@ -8,9 +8,7 @@ function Navbar() {
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const { isAuthenticated, logout } = useAuth();
-    
-    // Debug log for render and authentication state changes
-    useEffect(() => { 
+    useEffect(() => {
         console.log("Auth state changed in Navbar:", isAuthenticated);
         
     }, [isAuthenticated]); 
@@ -27,9 +25,15 @@ function Navbar() {
     return (
         <nav className="bg-gray-200 shadow-md">
             <div className="container mx-auto px-6 py-4 flex justify-between items-center">      
-                <Link href="/" className="text-xl font-bold text-gray-700">
+                {isAuthenticated ?  (
+                <Link href="/manage-emp" className="text-xl font-bold text-gray-700">
                     Chaincode Time Hub
                 </Link>
+                ) : (
+                    <Link href="/" className="text-xl font-bold text-gray-700">
+                    Chaincode Time Hub
+                </Link>
+                )} 
                 <button 
                     className="md:hidden text-gray-700 focus:outline-none"
                     onClick={() => setIsOpen(!isOpen)}
@@ -51,7 +55,6 @@ function Navbar() {
        
             {isAuthenticated && isOpen && (
                 <ul className="md:hidden bg-gray-100 py-4 px-6 space-y-3">
-                    <li><Link href="/" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Home</Link></li>
                     <li><Link href="/manage-emp" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Employee Management</Link></li>
                     <li><Link href="/add-emp" className="block text-gray-700 hover:text-blue-600" onClick={closeMenu}>Employee Module</Link></li>
                     <li><button className="block text-gray-700 hover:text-blue-600" onClick={() => { handleLogout(); closeMenu(); }}>

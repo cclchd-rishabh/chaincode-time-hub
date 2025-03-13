@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Search, Download, Plus, ArrowLeft, ArrowRight, Clock, Coffee, LogOut } from "lucide-react";
+import { Search, Download, Plus, ArrowLeft, ArrowRight, Clock, Coffee, LogOut ,ChevronDown} from "lucide-react";
 import { FormPane } from "./FormPane";
 import { createEmployee, empClockedIn, empClockedOut, empBreakStart, empBreakEnd, getDatewiseAttendance } from "/pages/api/fetch";
 import * as XLSX from "xlsx";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+
 
 function ManageEmp() {
     // Get date from URL param if available, otherwise use current date
@@ -301,11 +302,13 @@ function ManageEmp() {
                 </div> */}
 
                 {/* Data Table */}
-                <div className="overflow-x-auto">
+                <div className="flex flex-col overflow-x-auto overflow-y-auto min-h-[70vh] max-h-[70vh]">
+
+                {/* <div className="overflow-x-auto min-h-96"> */}
                     {filteredEmployees.length > 0 ? (
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead>
-                                <tr className="bg-gray-50">
+                                <tr className="bg-gray-50 sticky top-0 z-10">
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Name
                                     </th>
@@ -324,7 +327,7 @@ function ManageEmp() {
                                 </tr>
                             </thead>
 
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-white divide-y divide-gray-200 ">
                                 {currentEmployees.map((emp) => (
                                     <tr key={emp.employee_id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -452,19 +455,24 @@ function ManageEmp() {
                 {/* Pagination */}
                 {filteredEmployees.length > 0 && (
                     <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Show entries</label>
+                        <div className="flex items-center mb-4 sm:mb-0">
+                        <span className="text-black mr-2">Show</span>
+                        <div className="relative">
                             <select
-                                className="appearance-none bg-white border border-gray-300 rounded-md px-2 py-1 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                className="appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none"
                                 value={entriesPerPage}
                                 onChange={(e) => setEntriesPerPage(Number(e.target.value))}
                             >
                                 <option value={5}>5</option>
                                 <option value={10}>10</option>
                                 <option value={15}>15</option>
-                                <option value={25}>25</option>
                             </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                <ChevronDown size={16} />
+                            </div>
                         </div>
+                        <span className="text-black ml-2">entries</span>
+                    </div>
                         <div className="text-sm text-gray-700 mb-4 sm:mb-0">
                             Showing <span className="font-medium">{indexOfFirstEmployee + 1}</span> to <span className="font-medium">{Math.min(indexOfLastEmployee, filteredEmployees.length)}</span> of <span className="font-medium">{filteredEmployees.length}</span> entries
                         </div>
