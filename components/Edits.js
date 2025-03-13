@@ -5,6 +5,21 @@ import { Search, Edit, Trash2, Plus, X, ChevronDown } from "lucide-react";
 import { editEmployees, createEmployee, deleteEmployee, getAllEmployees } from "@/pages/api/fetch";
 import { Button } from "@/components/ui/button";
 
+const roleOptions = {
+
+    HR: ["Manager (Senior)", "Head HR (Senior)", "HR Executive (Junior)", "HR Executive (Senior)", "Intern (Intern)"],
+    Engineering: [
+        "Full Stack Developer (Junior)", "Full Stack Developer (Senior)", "Full Stack Developer (Tech Lead)", "Full Stack Developer (Intern)",
+        "Backend Developer (Junior)", "Backend Developer (Senior)", "Backend Developer (Tech Lead)", "Backend Developer (Intern)",
+        "Blockchain Developer (Junior)", "Blockchain Developer (Senior)", "Blockchain Developer (Tech Lead)", "Blockchain Developer (Intern)",
+        "Frontend Developer (Junior)", "Frontend Developer (Senior)", "Frontend Developer (Tech Lead)", "Frontend Developer (Intern)",
+        "DevOps (Junior)", "DevOps (Senior)", "DevOps (Tech Lead)", "DevOps (Intern)"
+    ],
+    Sales: ["Sales Executive (Junior)", "Sales Executive (Senior)", "Sales Manager (Senior)", "Business Development (Junior)", "Business Development (Senior)", "Intern (Intern)"],
+    Marketing: ["Marketing Lead (Senior)", "SEO Specialist (Junior)", "SEO Specialist (Senior)", "Content Writer (Junior)", "Content Writer (Senior)", "Intern (Intern)"],
+
+};
+
 
 function EmpEdit() {
     const [employees, setEmployees] = useState([]);
@@ -16,6 +31,8 @@ function EmpEdit() {
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [selectedDepartment, setSelectedDepartment] = useState("");
+    
 
     // Helper function for generating initials from names
     const getInitials = (firstName, lastName) => {
@@ -51,8 +68,8 @@ function EmpEdit() {
         last_name: Yup.string().max(20, "Must be 20 characters or less"),
         email: Yup.string().email("Invalid email format").required("Email is required").max(50, "Must be 50 characters or less"),
         avatar: Yup.string().url("Invalid URL"),
-        department: Yup.string().required("Department is required").max(20, "Must be 20 characters or less"),
-        role: Yup.string().required("Role is required").max(20, "Must be 20 characters or less"),
+        department: Yup.string().required("Department is required"),
+        role: Yup.string().required("Role is required"),
     });
 
     const handleEdit = (id) => {
@@ -111,6 +128,7 @@ function EmpEdit() {
     const handleSubmit = async (values, { resetForm }) => {
         setLoading(true);
         try {
+            console.log("these values ->", values);
             if (editEmployee && editEmployee.employee_id) {
                 await editEmployees(editEmployee.employee_id, values);
             } else {
@@ -136,7 +154,7 @@ function EmpEdit() {
     return (
         <div className="w-full mx-auto p-6 bg-gray-50 min-h-screen">
             {/* Header and Add Button */}
-            <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-sm">
+            <div className="max-w-9xl mx-auto bg-white rounded-xl shadow-sm">
                 <div className="flex flex-col sm:flex-row justify-between items-center p-6 border-b">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-800">Employees Dashboard</h1>
@@ -286,8 +304,8 @@ function EmpEdit() {
                         <div className="flex space-x-2">
                             <button
                                 className={`px-3 py-1 border border-gray-300 rounded-md ${currentPage === 1
-                                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                        : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                    : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                                     } text-sm`}
                                 onClick={goToPrevPage}
                                 disabled={currentPage === 1}
@@ -299,8 +317,8 @@ function EmpEdit() {
                                 <button
                                     key={number}
                                     className={`px-3 py-1 border border-gray-300 rounded-md ${currentPage === number
-                                            ? "bg-blue-600 text-white"
-                                            : "bg-gray-50 hover:bg-gray-100 text-gray-700"
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-gray-50 hover:bg-gray-100 text-gray-700"
                                         } text-sm`}
                                     onClick={() => paginate(number)}
                                 >
@@ -310,8 +328,8 @@ function EmpEdit() {
 
                             <button
                                 className={`px-3 py-1 border border-gray-300 rounded-md ${currentPage === totalPages || totalPages === 0
-                                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                        : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                    : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                                     } text-sm`}
                                 onClick={goToNextPage}
                                 disabled={currentPage === totalPages || totalPages === 0}
@@ -339,58 +357,104 @@ function EmpEdit() {
                             <h3 className="text-lg font-semibold mb-4">
                                 {editEmployee ? "Edit Employee" : "Add New Employee"}
                             </h3>
-
                             <Formik
                                 initialValues={{
                                     first_name: editEmployee?.first_name || "",
                                     last_name: editEmployee?.last_name || "",
                                     email: editEmployee?.email || "",
-                                    avatar: editEmployee?.avatar || "",
                                     department: editEmployee?.department || "",
                                     role: editEmployee?.role || "",
+                                    avatar: editEmployee?.avatar || "",  // Keep avatar instead of image
                                 }}
-                                validationSchema={validationSchema}
+                                validationSchema={validationSchema} // Ensuring validation is intact
                                 onSubmit={handleSubmit}
                                 enableReinitialize
                             >
-                                {({ isSubmitting }) => (
+                                {({ setFieldValue, values, isSubmitting }) => (
                                     <Form className="space-y-4">
+                                        {/* First Name */}
                                         <div>
-                                            <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">First Name    <span class="after:content-['*']  text-red-500"></span></label>
-                                            <Field type="text" id="first_name" name="first_name" className="w-full p-2 border rounded-lg" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                First Name <span className="text-red-500">*</span>
+                                            </label>
+                                            <Field type="text" name="first_name" className="w-full p-2 border rounded-lg" />
                                             <ErrorMessage name="first_name" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
 
+                                        {/* Last Name */}
                                         <div>
-                                            <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                                            <Field type="text" id="last_name" name="last_name" className="w-full p-2 border rounded-lg" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Last Name
+                                            </label>
+                                            <Field type="text" name="last_name" className="w-full p-2 border rounded-lg" />
                                             <ErrorMessage name="last_name" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
 
+                                        {/* Email */}
                                         <div>
-                                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email    <span class="after:content-['*']  text-red-500"></span></label>
-                                            <Field type="email" id="email" name="email" className="w-full p-2 border rounded-lg" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Email <span className="text-red-500">*</span>
+                                            </label>
+                                            <Field type="email" name="email" className="w-full p-2 border rounded-lg" />
                                             <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
 
+                                        {/* Avatar Upload */}
                                         <div>
-                                            <label htmlFor="avatar" className="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
-                                            <Field type="text" id="avatar" name="avatar" className="w-full p-2 border rounded-lg" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Avatar URL
+                                            </label>
+                                            <Field type="text" name="avatar" className="w-full p-2 border rounded-lg" />
                                             <ErrorMessage name="avatar" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
 
+                                        {/* Department Dropdown */}
                                         <div>
-                                            <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">Department    <span class="after:content-['*']  text-red-500"></span></label>
-                                            <Field type="text" id="department" name="department" className="w-full p-2 border rounded-lg" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Department <span className="text-red-500">*</span>
+                                            </label>
+                                            <Field
+                                                as="select"
+                                                name="department"
+                                                className="w-full p-2 border rounded-lg"
+                                                onChange={(e) => {
+                                                    const department = e.target.value;
+                                                    setFieldValue("department", department);
+                                                    setFieldValue("role", ""); // Reset role when department changes
+                                                    setSelectedDepartment(department);
+                                                }}
+                                            >
+                                                <option value="" disabled>Select Department</option>
+                                                {Object.keys(roleOptions).map((dept) => (
+                                                    <option key={dept} value={dept}>{dept}</option>
+                                                ))}
+                                            </Field>
                                             <ErrorMessage name="department" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
 
+                                        {/* Role Dropdown */}
                                         <div>
-                                            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Role    <span class="after:content-['*'] text-red-500"></span></label>
-                                            <Field type="text" id="role" name="role" className="w-full p-2 border rounded-lg" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Role <span className="text-red-500">*</span>
+                                            </label>
+                                            <Field
+                                                as="select"
+                                                name="role"
+                                                className="w-full p-2 border rounded-lg"
+                                                onChange={(e) => setFieldValue("role", e.target.value)}
+                                                disabled={!selectedDepartment}
+                                            >
+                                                <option value="" disabled>Select Role</option>
+                                                {selectedDepartment &&
+                                                    roleOptions[selectedDepartment]?.map((role) => (
+                                                        <option key={role} value={role}>{role}</option>
+                                                    ))
+                                                }
+                                            </Field>
                                             <ErrorMessage name="role" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
 
+                                        {/* Buttons */}
                                         <div className="flex justify-end space-x-3 pt-4">
                                             <button
                                                 type="button"
@@ -410,15 +474,16 @@ function EmpEdit() {
                                     </Form>
                                 )}
                             </Formik>
+
                         </div>
 
                     </div>
                 )}
 
             </div>
-          </div>  
-          
-        )
+        </div>
+
+    )
 }
 
-            export default EmpEdit;
+export default EmpEdit;

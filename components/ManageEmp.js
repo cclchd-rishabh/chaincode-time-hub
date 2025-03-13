@@ -237,7 +237,7 @@ function ManageEmp() {
 
     return (
         <div className="w-full mx-auto p-6 bg-gray-50 min-h-screen">
-            <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-sm">
+            <div className="max-w-9xl mx-auto bg-white rounded-xl shadow-sm">
                 {/* Header with title and action buttons */}
                 <div className="flex flex-col sm:flex-row justify-between items-center p-6 border-b">
                     <div>
