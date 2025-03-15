@@ -1,20 +1,17 @@
 import { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { FaEye, FaEyeSlash, FaFacebookF } from 'react-icons/fa';
-import { FaXTwitter } from 'react-icons/fa6';
-import { FaGithub } from 'react-icons/fa';
-import { FcGoogle } from 'react-icons/fc';
 import {loginUser} from '/pages/api/auth';
 import {useRouter} from 'next/router'
-import { useAuth } from './context/AuthContext'; 
+import { useDispatch } from "react-redux";
+import { login } from "../store/slices/AuthSlice";
 
 
 export default function LoginPage() {
-    // const navigate = useNavigate();
+    const dispatch = useDispatch();
     const Router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
-    const {isAuthenticated,login} = useAuth();
+   
     const [formData, setFormData] = useState({
         username: '',
         password: ''
@@ -43,7 +40,8 @@ export default function LoginPage() {
     
             sessionStorage.setItem('token', access_token);
             console.log("Access Token:", access_token);
-            login(access_token);
+            // login(access_token);
+            dispatch(login(access_token));
           
             Router.push('/manage-emp');
         } catch (error) {

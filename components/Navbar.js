@@ -2,19 +2,21 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { FiMenu, FiX } from 'react-icons/fi';
 import { useRouter } from 'next/router';
-import { useAuth } from './context/AuthContext'; 
-
+import { logout } from "../store/slices/AuthSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { checkAuth } from "../store/slices/AuthSlice";
 function Navbar() {
+    const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
-    const { isAuthenticated, logout } = useAuth();
+    const dispatch = useDispatch();
     useEffect(() => {
-        console.log("Auth state changed in Navbar:", isAuthenticated);
-        
-    }, [isAuthenticated]); 
+        dispatch(checkAuth());
+      }, [dispatch]);
 
     function handleLogout() {
-        logout();
+    
+        dispatch(logout());
         router.push('/');
     }
     
