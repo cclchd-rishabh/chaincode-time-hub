@@ -33,36 +33,85 @@ function ManageEmp() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [refresh, setRefresh] = useState(false);
-
+    const [filterType, setFilterType] = useState('all');
+    
     const exportToExcel = (data, fileName = `Employee_Attendance_${selectedDate.toISOString().split('T')[0]}.xlsx`) => {
         if (!data || data.length === 0) {
             alert("No data available to export.");
             return;
         }
-
-        // Map JSON to a simplified structure (only required fields)
-        const formattedData = data.map(emp => ({
-            "Employee ID": emp.employee_id,
-            "First Name": emp.first_name,
-            "Last Name": emp.last_name,
-            "Email": emp.email,
-            "Department": emp.department,
-            "Role": emp.role,
-            "Attendance Date": emp.attendance_date?.split(" ")[0] || "N/A", // Extracts only date
-            "Clock In": emp.clock_in || "N/A",
-            "Clock Out": emp.clock_out || "N/A",
-            "Total Work Time": emp.total_work_time || "00:00:00",
-            "Total Break Time": emp.total_break_time || "00:00:00",
-            "Status": emp.attendance_status || "N/A",
-        }));
-
+    
+        const formattedData = data.map(emp => {
+            const isAbsent = !emp.clock_in; // If clock_in is missing/null, mark as Absent
+    
+            return {
+                "Employee ID": emp.employee_id,
+                "First Name": emp.first_name,
+                "Last Name": emp.last_name,
+                "Email": emp.email,
+                "Department": emp.department,
+                "Role": emp.role,
+                "Attendance Date": emp.attendance_date?.split(" ")[0] || "N/A",
+                "Clock In": emp.clock_in || "N/A",
+                "Clock Out": emp.clock_out || "N/A",
+                "Total Work Time": isAbsent ? "00:00:00" : (emp.total_work_time || "00:00:00"),
+                "Total Break Time": isAbsent ? "00:00:00" : (emp.total_break_time || "00:00:00"),
+                "Status": isAbsent ? "Absent" : (emp.attendance_status || "N/A"),
+            };
+        });
+    
         // Create worksheet and workbook
         const worksheet = XLSX.utils.json_to_sheet(formattedData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
+    
+        // Convert sheet to an array of rows
+        const range = XLSX.utils.decode_range(worksheet["!ref"]);
+        
+        for (let row = range.s.r + 1; row <= range.e.r; row++) {
+            let statusCell = XLSX.utils.encode_cell({ r: row, c: 10 }); // "Status" is the 11th column (index 10)
+            if (worksheet[statusCell] && worksheet[statusCell].v === "Absent") {
+                for (let col = range.s.c; col <= range.e.c; col++) {
+                    let cell = XLSX.utils.encode_cell({ r: row, c: col });
+                    if (!worksheet[cell]) worksheet[cell] = {};
+                    worksheet[cell].s = { fill: { fgColor: { rgb: "FF0000" } } }; // Red highlight
+                }
+            }
+        }
+    
         XLSX.writeFile(workbook, fileName);
     };
-
+    
+    const applyFilters = (employees) => {
+        // First apply search filter
+        let filtered = employees.filter(emp =>
+          (emp.first_name + " " + emp.last_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
+          emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          emp.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          emp.role?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        
+        // Then apply status filter
+        switch (filterType) {
+          case 'not_clocked_in':
+            filtered = filtered.filter(emp => !emp.clock_in);
+            break;
+          case 'on_break':
+            filtered = filtered.filter(emp => emp.attendance_status === 'inactive');
+            break;
+          case 'active':
+            filtered = filtered.filter(emp => emp.attendance_status === 'active' && !emp.clock_out);
+            break;
+          case 'finished':
+            filtered = filtered.filter(emp => emp.attendance_status === 'day-over' || !!emp.clock_out);
+            break;
+          default:
+            // 'all' - no additional filtering
+            break;
+        }
+        
+        return filtered;
+      };
     const handleFormSubmit = async (formData) => {
         try {
             await createEmployee(formData);
@@ -118,7 +167,7 @@ function ManageEmp() {
     useEffect(() => {
         // Reset to first page when entries per page changes or when search query changes
         setCurrentPage(1);
-    }, [entriesPerPage, searchQuery]);
+    }, [entriesPerPage, searchQuery,filterType]);
 
     const handleOpenForm = () => {
         setIsFormOpen(true);
@@ -165,12 +214,14 @@ function ManageEmp() {
     }
 
     // Filter employees based on search query
-    const filteredEmployees = employees.filter(emp =>
-        (emp.first_name + " " + emp.last_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
-        emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        emp.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        emp.role?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredEmployees = applyFilters(employees);
+
+    // const filteredEmployees = employees.filter(emp =>
+    //     (emp.first_name + " " + emp.last_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
+    //     emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    //     emp.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    //     emp.role?.toLowerCase().includes(searchQuery.toLowerCase())
+    // );
 
     // Pagination calculation
     const totalPages = Math.ceil(filteredEmployees.length / entriesPerPage);
@@ -258,6 +309,22 @@ function ManageEmp() {
                                 />
                             </div>
                         </div>
+                        <div className="relative">
+  <select
+    className="appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none"
+    value={filterType}
+    onChange={(e) => setFilterType(e.target.value)}
+  >
+    <option value="all">All Employees</option>
+    <option value="not_clocked_in">Not Clocked In</option>
+    <option value="on_break">On Break</option>
+    <option value="active">Active</option>
+    <option value="finished">Finished</option>
+  </select>
+  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+    <ChevronDown size={16} />
+  </div>
+</div>
                         <div className="flex items-center relative">
                             <input
                                 type="text"
