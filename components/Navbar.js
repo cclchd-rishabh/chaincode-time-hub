@@ -29,7 +29,7 @@ function Navbar() {
         <nav className="bg-gray-200 shadow-md">
             <div className="container mx-auto px-6 py-4 flex justify-between items-center">
                 {isAuthenticated ? (
-                    <Link href="/manage-emp" className="text-xl font-bold text-gray-700">
+                    <Link href="/home" className="text-xl font-bold text-gray-700">
                         Chaincode Time Hub
                     </Link>
                 ) : (

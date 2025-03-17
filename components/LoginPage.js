@@ -44,7 +44,7 @@ export default function LoginPage() {
             // login(access_token);
             dispatch(login(access_token,role));
           
-            Router.push('/manage-emp');
+            Router.push('/home');
         } catch (error) {
             console.error("Login failed:", error.message || error);
         }
@@ -68,76 +68,14 @@ export default function LoginPage() {
                         className='transform scale-125'
                     />
                 </div>
-                {/* Stats cards */}
-                {/* <div className="absolute left-1/4 top-1/3">
-                    <div className="bg-white p-4 rounded-lg shadow-lg w-40">
-                        <div className="text-sm text-gray-500">Profit</div>
-                        <div className="text-sm text-gray-400">Last Month</div>
-                        <div className="flex items-center mt-2">
-                            <Image
-                                src="/profit-chart.svg"
-                                alt="Profit Chart"
-                                width={100}
-                                height={40}
-                            />
-                        </div>
-                        <div className="flex justify-between mt-2">
-                            <div className="font-bold">624k</div>
-                            <div className="text-green-500 text-sm">+8.24%</div>
-                        </div>
-                    </div>
-                </div> */}
-
-                {/* <div className="absolute right-1/4 top-1/2">
-                    <div className="bg-white p-4 rounded-lg shadow-lg w-40">
-                        <div className="text-sm text-gray-500">Order</div>
-                        <div className="text-sm text-gray-400">Last week</div>
-                        <div className="flex items-center justify-center mt-2">
-                            <Image
-                                src="/order-chart.svg"
-                                alt="Order Chart"
-                                width={100}
-                                height={40}
-                            />
-                        </div>
-                        <div className="flex justify-between mt-2">
-                            <div className="font-bold">124k</div>
-                            <div className="text-green-500 text-sm">+12.6%</div>
-                        </div>
-                    </div>
-                </div> */}
-
-                {/* Logo */}
-                {/* <div className="absolute top-8 left-8">
-                    <div className="flex items-center">
-                        <div className="bg-indigo-500 w-8 h-8 rounded flex items-center justify-center">
-                            <svg viewBox="0 0 24 24" className="w-5 h-5 text-white">
-                                <path
-                                    fill="currentColor"
-                                    d="M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.89 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6C21,4.89 20.11,4 19,4Z"
-                                />
-                            </svg>
-                        </div>
-                        <span className="ml-2 text-xl font-bold text-gray-800">Vuexy</span>
-                    </div>
-                </div> */}
+                
             </div>
 
             {/* Right side with login form */}
             <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
                 <div className="w-full max-w-md">
                     {/* Logo for mobile view */}
-                    <div className="lg:hidden mb-8 flex items-center">
-                        <div className="bg-indigo-500 w-8 h-8 rounded flex items-center justify-center">
-                            <svg viewBox="0 0 24 24" className="w-5 h-5 text-white">
-                                <path
-                                    fill="currentColor"
-                                    d="M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.89 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6C21,4.89 20.11,4 19,4Z"
-                                />
-                            </svg>
-                        </div>
-                        <span className="ml-2 text-xl font-bold text-gray-800">Vuexy</span>
-                    </div>
+                   
 
                     <h1 className="text-2xl font-bold text-gray-800 mb-2">Welcome to Chaincode Consulting 👋</h1>
                     <p className="text-gray-600 mb-8">Please sign-in to your account</p>
@@ -184,12 +122,6 @@ export default function LoginPage() {
 
                         <div className="flex items-center justify-between mb-6">
                             
-                            {/* <Link
-                                href="/forgot-password"
-                                className="text-indigo-600 hover:text-indigo-800"
-                            >
-                                Forgot Password?
-                            </Link> */}
                         </div>
                     
                         <button
@@ -203,33 +135,10 @@ export default function LoginPage() {
                     </form>
 
                     <div className="mt-6 text-center">
-                        {/* <p className="text-gray-600">
-                            New on our platform?{' '}
-                            <Link href="/register" className="text-indigo-600 hover:text-indigo-800">
-                                Create an account
-                            </Link>
-                        </p> */}
-
-                        {/* <div className="mt-6">
-                            <p className="text-gray-500 mb-4">or</p>
-                            <div className="flex justify-center space-x-4">
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-50">
-                                    <FaFacebookF className="text-blue-600" size={18} />
-                                </button>
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-50">
-                                    <FaXTwitter size={18} />
-                                </button>
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-50">
-                                    <FaGithub size={18} />
-                                </button>
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-50">
-                                    <FcGoogle size={18} />
-                                </button>
-                            </div>
-                        </div> */}
+ 
                     </div>
 
-                    {/* Buy Now button for mobile view */}
+                  
                    
                 </div>
             </div>

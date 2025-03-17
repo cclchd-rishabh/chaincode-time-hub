@@ -25,24 +25,9 @@ export default function EnhancedLandingPage() {
       description: "Precise attendance with real-time monitoring"
     },
     {
-      icon: <Calendar className="w-6 h-6 text-blue-600" />,
-      title: "Smart Analytics",
-      description: "Insightful attendance metrics and trends"
-    },
-    {
       icon: <Download className="w-6 h-6 text-blue-600" />,
       title: "Export Reports",
       description: "One-click payroll-ready data exports"
-    },
-    {
-      icon: <BarChart3 className="w-6 h-6 text-blue-600" />,
-      title: "Performance Insights",
-      description: "Track productivity and engagement metrics"
-    },
-    {
-      icon: <Shield className="w-6 h-6 text-blue-600" />,
-      title: "Secure Access",
-      description: "Role-based permissions and data protection"
     }
   ];
 
@@ -85,9 +70,9 @@ export default function EnhancedLandingPage() {
         </div>
         
         <div className="flex justify-center mt-6">
-          <Link href="/login">
+          <Link href="/manage-emp">
             <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-10 py-6 rounded-xl text-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 group">
-              Sign In Now
+              Management Console
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
