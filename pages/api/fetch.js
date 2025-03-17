@@ -13,8 +13,6 @@ export async function createEmployee(formData) {
   console.log("createEmployee ->", formData);
   try {
     const token = sessionStorage.getItem('token');
-    
-    // Create a direct fetch request without setting Content-Type
     const response = await fetch(`${getRootUrl}${BASE_PATH}`, {
       method: "POST",
       credentials: 'same-origin',
@@ -54,20 +52,32 @@ export async function deleteEmployee(id){
   })
 }
 
-export async function editEmployees(id,formData){
-  try{
-    console.log("Editing Employee data -> " , formData);
-    return sendRequest(`${BASE_PATH}/${id}`,{
-      method: 'PUT',
-      body: formData
-    })
-   
-  }catch(err){
-    console.error("Error editing employee in fetch");
+export async function editEmployees(id, formData) {
+  try {
+      console.log("Editing employee", id);
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`${getRootUrl}${BASE_PATH}/${id}`, {
+          method: "PUT",
+          credentials: "same-origin",
+          headers: {
+              Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+      });
+
+      if (!response.ok) {
+          console.error(`Error: ${response.status} - ${response.statusText}`);
+          return null;
+      }
+
+      const data = await response.json();
+      return data;
+  } catch (err) {
+      console.error("Error editing employee in fetch:", err);
+      return null;
   }
+
 }
-
-
 
 export async function empClockedIn(id){
   try{

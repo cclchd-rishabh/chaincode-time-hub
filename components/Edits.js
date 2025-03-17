@@ -36,10 +36,11 @@ function EmpEdit() {
     const [selectedDepartment, setSelectedDepartment] = useState("");
 
 
-    // Helper function for generating initials from names
+    
     const getInitials = (firstName, lastName) => {
         return `${firstName?.[0] || ''}${lastName?.[0] || ''}`;
     };
+
     const fetchEmployees = async () => {
 
         setLoading(true);
@@ -68,20 +69,29 @@ function EmpEdit() {
         first_name: Yup.string().required("First Name is required").max(20, "Must be 20 characters or less"),
         last_name: Yup.string().max(20, "Must be 20 characters or less"),
         email: Yup.string().email("Invalid email format").required("Email is required").max(50, "Must be 50 characters or less"),
-        // avatar: Yup.string().url("Invalid URL"),
+        avatar: Yup.mixed()
+            .test('fileSize', 'File size must be less than 10MB', (value) => {
+                if (!value) return true; // Allow empty values
+                return value.size <= 10 * 1024 * 1024; // 10MB
+            })
+            .test('fileType', 'Unsupported file format', (value) => {
+                if (!value) return true; // Allow empty values
+                return ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'].includes(value.type);
+            }),
         department: Yup.string().required("Department is required"),
         role: Yup.string().required("Role is required"),
     });
-
     const handleEdit = (id) => {
         try {
+            console.log("Handle edit called" , id);
             const employee = employees.find((emp) => emp.employee_id === id);
             if (!employee) {
                 setError("Employee not found")
                 console.error("Employee not found");
                 return;
             }
-            setEditEmployee(employees);
+            console.log(employee);
+            setEditEmployee(employee);
             setShowModal(true);
         } catch (error) {
             console.Error("Error cannot edit")
@@ -113,10 +123,44 @@ function EmpEdit() {
     for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
     }
+    const handleSubmit = async (values, { resetForm }) => {
+        const formValues = { ...values };
+        setLoading(true);
+    
+        try {
+            const formData = new FormData();
+            formData.append("first_name", formValues.first_name);
+            formData.append("last_name", formValues.last_name);
+            formData.append("email", formValues.email);
+            formData.append("department", formValues.department);
+            formData.append("role", formValues.role);
+    
+            if (formValues.avatar) {
+                formData.append("avatar", formValues.avatar);
+            }
+    
+            if (editEmployee && editEmployee.employee_id) {
+                await editEmployees(editEmployee.employee_id, formData);
+            } else {
+                await createEmployee(formData);
+            }
+    
+            setRefresh(!refresh);
+            setEditEmployee(null);
+            setShowModal(false);
+            resetForm();
+        } catch (error) {
+            console.error("Error saving employee:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
 
     const handleDelete = async (id) => {
         try {
             if (window.confirm("Are you sure you want to delete this employee?")) {
+                const data = await deleteEmployee(id);
                 setRefresh(!refresh);
             }
         } catch (error) {
@@ -347,39 +391,7 @@ function EmpEdit() {
                                     avatar: null,  // Updated to handle file
                                 }}
                                 validationSchema={validationSchema}
-                                onSubmit={async (values, { resetForm }) => {
-                                    // Store values in a local variable that will persist throughout the function
-                                    const formValues = { ...values };
-                                    setLoading(true);
-                                    
-                                    try {
-                                        const formData = new FormData();
-                                        formData.append("first_name", formValues.first_name);
-                                        formData.append("last_name", formValues.last_name);
-                                        formData.append("email", formValues.email);
-                                        formData.append("department", formValues.department);
-                                        formData.append("role", formValues.role);
-                                
-                                        if (formValues.avatar) {
-                                            formData.append("avatar", formValues.avatar);
-                                        }
-                                
-                                        if (editEmployee && editEmployee.employee_id) {
-                                            await editEmployees(editEmployee.employee_id, formData);
-                                        } else {
-                                            await createEmployee(formData);
-                                        }
-                                
-                                        setRefresh(!refresh);
-                                        setEditEmployee(null);
-                                        setShowModal(false);
-                                        resetForm();
-                                    } catch (error) {
-                                        console.error("Error saving employee:", error);
-                                    } finally {
-                                        setLoading(false);
-                                    }
-                                }}
+                              onSubmit={handleSubmit}
                                 enableReinitialize
                             >
                                 {({ setFieldValue, isSubmitting }) => (

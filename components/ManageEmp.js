@@ -397,11 +397,11 @@ function ManageEmp() {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 {emp.avatar ? (
-                                                    <img
-                                                        src={emp.avatar}
-                                                        alt={`${emp.first_name} ${emp.last_name}`}
-                                                        className="w-10 h-10 rounded-full object-cover"
-                                                    />
+                                                   <img
+                                                   src={`http://localhost:4000${emp.avatar}`}
+                                                   alt={`${emp.first_name} ${emp.last_name}`}
+                                                   className="w-10 h-10 rounded-full object-cover"
+                                               />
                                                 ) : (
                                                     <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-blue-600">
                                                         {getInitials(emp.first_name, emp.last_name)}
