@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import sendRequest from './send-request'
 const BASE_PATH = '/employees'
-
+const getRootUrl = "http://localhost:4000";
 export async function getAllEmployees(req,res){
   console.log("getAllEmployees");
   return sendRequest(`${BASE_PATH}`, {
@@ -9,23 +9,41 @@ export async function getAllEmployees(req,res){
 })
 }
 
-export async function createEmployee(values) {
-  console.log("createEmployee ->", values);
+export async function createEmployee(formData) {
+  console.log("createEmployee ->", formData);
   try {
-      const data = await sendRequest(`${BASE_PATH}`, {
-          method: "POST",
-          body: JSON.stringify(values),
-      });
-      if(data.success){
-        toast.success("Employee Boarded")
-      }else{
-        toast.error("Email Already Exists")
-      }
-      console.log("data->",data);
-      return data;
+    const token = sessionStorage.getItem('token');
+    
+    // Create a direct fetch request without setting Content-Type
+    const response = await fetch(`${getRootUrl}${BASE_PATH}`, {
+      method: "POST",
+      credentials: 'same-origin',
+      headers: {
+        // Don't set Content-Type for FormData requests
+        // Let the browser handle it automatically
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData, // Send FormData directly
+    });
+
+    const data = await response.json();
+    
+    if (response.status === 403) {
+      toast.error("You are not authorized to perform this task");
+    } else if (response.status === 401) {
+      toast.error("Invalid Credentials");
+    } else if (data.success) {
+      toast.success("Employee Boarded");
+    } else {
+      toast.error("Email Already Exists");
+    }
+    
+    console.log("data->", data);
+    return data;
   } catch (error) {
-      console.error("Error in createEmployee:", error);
-      throw new Error("Failed to create employee");
+    console.error("Error in createEmployee:", error);
+    toast.error("Failed to create employee");
+    throw new Error("Failed to create employee");
   }
 }
 
@@ -36,12 +54,12 @@ export async function deleteEmployee(id){
   })
 }
 
-export async function editEmployees(id,values){
+export async function editEmployees(id,formData){
   try{
-    console.log("Editing Employee data -> " , values);
+    console.log("Editing Employee data -> " , formData);
     return sendRequest(`${BASE_PATH}/${id}`,{
       method: 'PUT',
-      body: JSON.stringify(values)
+      body: formData
     })
    
   }catch(err){
@@ -93,9 +111,6 @@ export async function empBreakEnd(id){
     console.log(e);
   }
 }
-
-
-
 export async function getDatewiseAttendance(date) {
   try {
     const token = sessionStorage.getItem('token'); // Ensure the token is stored correctly

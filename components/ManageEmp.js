@@ -9,6 +9,9 @@ import "react-datepicker/dist/react-datepicker.css";
 
 
 function ManageEmp() {
+
+
+
     // Get date from URL param if available, otherwise use current date
     const getInitialDate = () => {
         if (typeof window !== 'undefined') {
@@ -78,7 +81,6 @@ function ManageEmp() {
                 }
             }
         }
-    
         XLSX.writeFile(workbook, fileName);
     };
     
@@ -106,7 +108,7 @@ function ManageEmp() {
             filtered = filtered.filter(emp => emp.attendance_status === 'day-over' || !!emp.clock_out);
             break;
           default:
-            // 'all' - no additional filtering
+           //*
             break;
         }
         
@@ -122,7 +124,9 @@ function ManageEmp() {
         }
     };
 
+
     const fetchAttendanceData = async (date = new Date()) => {
+        
         setLoading(true);
         setError(null);
         try {
@@ -164,8 +168,8 @@ function ManageEmp() {
         }
     }, [selectedDate, refresh]);
 
+
     useEffect(() => {
-        // Reset to first page when entries per page changes or when search query changes
         setCurrentPage(1);
     }, [entriesPerPage, searchQuery,filterType]);
 
@@ -215,13 +219,6 @@ function ManageEmp() {
 
     // Filter employees based on search query
     const filteredEmployees = applyFilters(employees);
-
-    // const filteredEmployees = employees.filter(emp =>
-    //     (emp.first_name + " " + emp.last_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
-    //     emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    //     emp.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    //     emp.role?.toLowerCase().includes(searchQuery.toLowerCase())
-    // );
 
     // Pagination calculation
     const totalPages = Math.ceil(filteredEmployees.length / entriesPerPage);

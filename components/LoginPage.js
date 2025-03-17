@@ -36,12 +36,13 @@ export default function LoginPage() {
                 return;
             }
     
-            const { access_token } = res;
-    
+            const { access_token,role} = res;
+            console.log("login resp from backend ->" , res);
             sessionStorage.setItem('token', access_token);
+            sessionStorage.setItem('role',role)
             console.log("Access Token:", access_token);
             // login(access_token);
-            dispatch(login(access_token));
+            dispatch(login(access_token,role));
           
             Router.push('/manage-emp');
         } catch (error) {

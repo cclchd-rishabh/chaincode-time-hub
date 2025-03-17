@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   isAuthenticated: false,
+  role:null
 };
 
 const authSlice = createSlice({
@@ -14,11 +15,14 @@ const authSlice = createSlice({
     },
     logout: (state) => {
       sessionStorage.removeItem("token");
+      sessionStorage.removeItem("role");
       state.isAuthenticated = false;
     },
     checkAuth: (state) => {
-      const token = sessionStorage.getItem("token");
-      state.isAuthenticated = !!token;
+      const token = sessionStorage.getItem("token") ;
+      state.isAuthenticated = !!token ;
+      const role = sessionStorage.getItem("role") ;
+      state.role = role ;
     },
   },
 });

@@ -4,6 +4,8 @@ import * as Yup from "yup";
 import { Search, Edit, Trash2, Plus, X, ChevronDown } from "lucide-react";
 import { editEmployees, createEmployee, deleteEmployee, getAllEmployees } from "@/pages/api/fetch";
 import { Button } from "@/components/ui/button";
+import { toast } from "react-toastify";
+import { useAddEmployeeMutation } from "../store/api/apiSlice";
 
 const roleOptions = {
 
@@ -25,22 +27,21 @@ function EmpEdit() {
     const [employees, setEmployees] = useState([]);
     const [refresh, setRefresh] = useState(false);
     const [editEmployee, setEditEmployee] = useState(null);
-    const [entriesPerPage, setEntriesPerPage] = useState(5);
+    const [entriesPerPage, setEntriesPerPage] = useState(15);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [selectedDepartment, setSelectedDepartment] = useState("");
-    
+
 
     // Helper function for generating initials from names
     const getInitials = (firstName, lastName) => {
         return `${firstName?.[0] || ''}${lastName?.[0] || ''}`;
     };
-
-
     const fetchEmployees = async () => {
+
         setLoading(true);
         setError(null);
         try {
@@ -67,7 +68,7 @@ function EmpEdit() {
         first_name: Yup.string().required("First Name is required").max(20, "Must be 20 characters or less"),
         last_name: Yup.string().max(20, "Must be 20 characters or less"),
         email: Yup.string().email("Invalid email format").required("Email is required").max(50, "Must be 50 characters or less"),
-        avatar: Yup.string().url("Invalid URL"),
+        // avatar: Yup.string().url("Invalid URL"),
         department: Yup.string().required("Department is required"),
         role: Yup.string().required("Role is required"),
     });
@@ -80,7 +81,7 @@ function EmpEdit() {
                 console.error("Employee not found");
                 return;
             }
-            setEditEmployee(employee);
+            setEditEmployee(employees);
             setShowModal(true);
         } catch (error) {
             console.Error("Error cannot edit")
@@ -116,7 +117,6 @@ function EmpEdit() {
     const handleDelete = async (id) => {
         try {
             if (window.confirm("Are you sure you want to delete this employee?")) {
-                const data = await deleteEmployee(id);
                 setRefresh(!refresh);
             }
         } catch (error) {
@@ -124,27 +124,7 @@ function EmpEdit() {
             console.error("Error deleting employee:", error);
         }
     };
-
-    const handleSubmit = async (values, { resetForm }) => {
-        setLoading(true);
-        try {
-            console.log("these values ->", values);
-            if (editEmployee && editEmployee.employee_id) {
-                await editEmployees(editEmployee.employee_id, values);
-            } else {
-                await createEmployee(values);
-            }
-            setRefresh(!refresh);
-            setEditEmployee(null);
-            setShowModal(false);
-            resetForm();
-        } catch (error) {
-            setError("Error Saving Employee")
-            console.error("Error saving employee:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // const [addEmployee, { isLoading }] = useAddEmployeeMutation();
 
     const handleAddNew = () => {
         setEditEmployee(null);
@@ -228,7 +208,7 @@ function EmpEdit() {
                                             <div className="flex items-center">
                                                 {emp.avatar ? (
                                                     <img
-                                                        src={emp.avatar}
+                                                        src={`http://localhost:4000${emp.avatar}`}
                                                         alt={`${emp.first_name} ${emp.last_name}`}
                                                         className="w-10 h-10 rounded-full object-cover"
                                                     />
@@ -364,51 +344,85 @@ function EmpEdit() {
                                     email: editEmployee?.email || "",
                                     department: editEmployee?.department || "",
                                     role: editEmployee?.role || "",
-                                    avatar: editEmployee?.avatar || "",  // Keep avatar instead of image
+                                    avatar: null,  // Updated to handle file
                                 }}
-                                validationSchema={validationSchema} // Ensuring validation is intact
-                                onSubmit={handleSubmit}
+                                validationSchema={validationSchema}
+                                onSubmit={async (values, { resetForm }) => {
+                                    // Store values in a local variable that will persist throughout the function
+                                    const formValues = { ...values };
+                                    setLoading(true);
+                                    
+                                    try {
+                                        const formData = new FormData();
+                                        formData.append("first_name", formValues.first_name);
+                                        formData.append("last_name", formValues.last_name);
+                                        formData.append("email", formValues.email);
+                                        formData.append("department", formValues.department);
+                                        formData.append("role", formValues.role);
+                                
+                                        if (formValues.avatar) {
+                                            formData.append("avatar", formValues.avatar);
+                                        }
+                                
+                                        if (editEmployee && editEmployee.employee_id) {
+                                            await editEmployees(editEmployee.employee_id, formData);
+                                        } else {
+                                            await createEmployee(formData);
+                                        }
+                                
+                                        setRefresh(!refresh);
+                                        setEditEmployee(null);
+                                        setShowModal(false);
+                                        resetForm();
+                                    } catch (error) {
+                                        console.error("Error saving employee:", error);
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
                                 enableReinitialize
                             >
-                                {({ setFieldValue, values, isSubmitting }) => (
+                                {({ setFieldValue, isSubmitting }) => (
                                     <Form className="space-y-4">
                                         {/* First Name */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                First Name <span className="text-red-500">*</span>
-                                            </label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
                                             <Field type="text" name="first_name" className="w-full p-2 border rounded-lg" />
                                             <ErrorMessage name="first_name" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
 
                                         {/* Last Name */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Last Name
-                                            </label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
                                             <Field type="text" name="last_name" className="w-full p-2 border rounded-lg" />
                                             <ErrorMessage name="last_name" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
 
                                         {/* Email */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Email <span className="text-red-500">*</span>
-                                            </label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                             <Field type="email" name="email" className="w-full p-2 border rounded-lg" />
                                             <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
 
-                                        {/* Avatar Upload */}
+                                        {/* Image Upload */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Avatar URL
-                                            </label>
-                                            <Field type="text" name="avatar" className="w-full p-2 border rounded-lg" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Upload Avatar</label>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="w-full p-2 border rounded-lg"
+                                                onChange={(event) => {
+                                                    const file = event.currentTarget.files[0];
+                                                    if (file && file.size <= 10 * 1024 * 1024) { // Max size 10MB
+                                                        setFieldValue("avatar", file);
+                                                    } else {
+                                                        alert("File size should be under 10MB");
+                                                    }
+                                                }}
+                                            />
                                             <ErrorMessage name="avatar" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
-
-                                        {/* Department Dropdown */}
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Department <span className="text-red-500">*</span>
@@ -431,8 +445,6 @@ function EmpEdit() {
                                             </Field>
                                             <ErrorMessage name="department" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
-
-                                        {/* Role Dropdown */}
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Role <span className="text-red-500">*</span>
@@ -468,12 +480,13 @@ function EmpEdit() {
                                                 disabled={isSubmitting}
                                                 className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md"
                                             >
-                                                {isSubmitting ? "Saving..." : (editEmployee ? "Update" : "Create")}
+                                                {isSubmitting ? "Saving..." : editEmployee ? "Update" : "Create"}
                                             </button>
                                         </div>
                                     </Form>
                                 )}
                             </Formik>
+
 
                         </div>
 
