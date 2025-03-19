@@ -81,6 +81,7 @@ export async function editEmployees(id, formData) {
 
 export async function empClockedIn(id){
   try{
+    console.log("console of empClockedIn",id);
     console.log("Clocking in ", id);
     return sendRequest(`${BASE_PATH}/clock-in/${id}`,{
       method:'POST'

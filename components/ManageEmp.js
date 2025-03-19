@@ -37,52 +37,51 @@ function ManageEmp() {
     const [error, setError] = useState(null);
     const [refresh, setRefresh] = useState(false);
     const [filterType, setFilterType] = useState('all');
+    const [exportType, setExportType] = useState("today");
     
-    const exportToExcel = (data, fileName = `Employee_Attendance_${selectedDate.toISOString().split('T')[0]}.xlsx`) => {
+    const handleExport = async () => {
+        if (exportType === "today") {
+            exportToExcel(employees, "Employee_Attendance_Today.xlsx");
+        } else if (exportType === "last7days") {
+            setLoading(true);
+            await fetchLast7DaysAttendance();  // Wait for all data to be fetched
+            setLoading(false);
+    
+            // Export after data is successfully fetched
+            exportToExcel(employees, "Employee_Attendance_Last_7_Days.xlsx");
+        }
+    };
+    
+    
+
+    const exportToExcel = (data, fileName) => {
         if (!data || data.length === 0) {
             alert("No data available to export.");
             return;
         }
     
-        const formattedData = data.map(emp => {
-            const isAbsent = !emp.clock_in; // If clock_in is missing/null, mark as Absent
+        const formattedData = data.map(emp => ({
+            "Employee ID": emp.employee_id,
+            "First Name": emp.first_name,
+            "Last Name": emp.last_name,
+            "Email": emp.email,
+            "Department": emp.department,
+            "Role": emp.role,
+            "Attendance Date": emp.attendance_date?.split(" ")[0] || "N/A",
+            "Clock In": formatTimeWithAMPM(emp.clock_in) || "N/A",
+            "Clock Out": formatTimeWithAMPM(emp.clock_out) || "N/A",
+            "Total Work Time": formatStopwatchTime(emp.total_work_time),
+            "Total Break Time": formatStopwatchTime(emp.total_break_time),
+            "Status": emp.attendance_status || "N/A",
+        }));
     
-            return {
-                "Employee ID": emp.employee_id,
-                "First Name": emp.first_name,
-                "Last Name": emp.last_name,
-                "Email": emp.email,
-                "Department": emp.department,
-                "Role": emp.role,
-                "Attendance Date": emp.attendance_date?.split(" ")[0] || "N/A",
-                "Clock In": emp.clock_in || "N/A",
-                "Clock Out": emp.clock_out || "N/A",
-                "Total Work Time": isAbsent ? "00:00:00" : (emp.total_work_time || "00:00:00"),
-                "Total Break Time": isAbsent ? "00:00:00" : (emp.total_break_time || "00:00:00"),
-                "Status": isAbsent ? "Absent" : (emp.attendance_status || "N/A"),
-            };
-        });
-    
-        // Create worksheet and workbook
         const worksheet = XLSX.utils.json_to_sheet(formattedData);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance Report");
     
-        // Convert sheet to an array of rows
-        const range = XLSX.utils.decode_range(worksheet["!ref"]);
-        
-        for (let row = range.s.r + 1; row <= range.e.r; row++) {
-            let statusCell = XLSX.utils.encode_cell({ r: row, c: 10 }); // "Status" is the 11th column (index 10)
-            if (worksheet[statusCell] && worksheet[statusCell].v === "Absent") {
-                for (let col = range.s.c; col <= range.e.c; col++) {
-                    let cell = XLSX.utils.encode_cell({ r: row, c: col });
-                    if (!worksheet[cell]) worksheet[cell] = {};
-                    worksheet[cell].s = { fill: { fgColor: { rgb: "FF0000" } } }; // Red highlight
-                }
-            }
-        }
         XLSX.writeFile(workbook, fileName);
     };
+    
     
     const applyFilters = (employees) => {
         // First apply search filter
@@ -140,6 +139,33 @@ function ManageEmp() {
             setLoading(false);
         }
     };
+    const fetchLast7DaysAttendance = async () => {
+        setLoading(true);
+        setError(null);
+        
+        let allData = [];
+        const today = new Date();
+    
+        try {
+            for (let i = 0; i < 7; i++) {
+                const date = new Date();
+                date.setDate(today.getDate() - i);  // Get last 7 days
+                
+                const dateString = date.toISOString().split('T')[0];
+                const data = await getDatewiseAttendance(dateString);
+                
+                allData = [...allData, ...data];  // Append each day's data
+            }
+    
+            setEmployees(allData);  // Store aggregated data
+        } catch (error) {
+            setError("Failed to fetch last 7 days of attendance.");
+            console.error("Error fetching attendance:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
 
     // Update URL when date changes
     const updateUrlWithDate = (date) => {
@@ -277,6 +303,40 @@ function ManageEmp() {
             console.error(e);
         }
     }
+    function formatTimeWithAMPM(timestamp) {
+        if (!timestamp) return "N/A";
+        
+        // Check if timestamp is in seconds (Unix timestamp typically in seconds)
+        // If less than 13 digits, it's likely in seconds and needs to be multiplied by 1000
+        const timeInMs = timestamp.toString().length < 13 ? timestamp * 1000 : timestamp;
+        
+        return new Date(timeInMs).toLocaleTimeString('en-US', {
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: true  // This ensures AM/PM format
+        });
+      }
+
+      function formatStopwatchTime(seconds) {
+        if (!seconds) return "00:00:00";
+        
+        // If it's already in HH:MM:SS format
+        if (typeof seconds === 'string' && seconds.includes(':')) {
+          const [hours, minutes, secs] = seconds.split(":").map(Number);
+          return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+        }
+        
+        // Convert to number if it's not already
+        const totalSeconds = Number(seconds);
+        
+        // Calculate hours, minutes, seconds
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const secs = Math.floor(totalSeconds % 60);
+        
+        // Format as HH:MM:SS
+        return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+      }
 
     // Function to handle date change
     const handleDateChange = (date) => {
@@ -334,14 +394,25 @@ function ManageEmp() {
                                 <Search size={16} className="text-gray-400" />
                             </div>
                         </div>
-                        <Button
-                            variant="outline"
-                            className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
-                            onClick={() => exportToExcel(employees)}
-                        >
-                            <Download size={16} />
-                            Export Data
-                        </Button>
+                        <div className="flex items-center gap-4">
+    <select 
+        className="border border-blue-600 text-blue-600 rounded-md p-2"
+        onChange={(e) => setExportType(e.target.value)}
+        value={exportType}
+    >
+        <option value="today">Today’s Data</option>
+        <option value="last7days">Last 7 Days</option>
+    </select>
+
+    <Button
+        variant="outline"
+        className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
+        onClick={() => handleExport()}
+    >
+        <Download size={16} />
+        Export Data
+    </Button>
+</div>
                         {loading && (
                             <div className="mt-4 flex items-center text-blue-600">
                                 <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -422,21 +493,21 @@ function ManageEmp() {
                                                     <div className="flex flex-col items-center">
                                                         <span className="text-xs font-medium text-gray-700 mb-1">Net Work</span>
                                                         <span className="bg-green-100 text-green-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
-                                                            {emp.total_time}
+                                                        {formatStopwatchTime(emp.total_work_time)}
                                                         </span>
                                                     </div>
 
                                                     <div className="flex flex-col items-center">
                                                         <span className="text-xs font-medium text-gray-700 mb-1">Break</span>
                                                         <span className="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
-                                                            {emp.total_break_time}
+                                                        {formatStopwatchTime(emp.total_break_time)}
                                                         </span>
                                                     </div>
 
                                                     <div className="flex flex-col items-center">
                                                         <span className="text-xs font-medium text-gray-700 mb-1">Total</span>
                                                         <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
-                                                            {emp.total_work_time}
+                                                        {formatStopwatchTime(emp.total_time)}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -444,7 +515,7 @@ function ManageEmp() {
                                                 <div className="flex items-center space-x-2">
                                                     <div className={`flex-shrink-0 w-2 h-2 rounded-full ${emp.clock_in ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></div>
                                                     <span className="text-sm">
-                                                        {emp.clock_in ? `Clocked in at ${emp.clock_in}` : "Not clocked in"}
+                                                        {emp.clock_in ? `Clocked in at  ${formatTimeWithAMPM(emp.clock_in)} ` : "Not clocked in"}
                                                     </span>
                                                 </div>
                                             )}
