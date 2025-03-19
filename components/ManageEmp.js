@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Search, Download, Plus, ArrowLeft, ArrowRight, Clock, Coffee, LogOut ,ChevronDown} from "lucide-react";
-import { FormPane } from "./FormPane";
-import { createEmployee, empClockedIn, empClockedOut, empBreakStart, empBreakEnd, getDatewiseAttendance } from "/pages/api/fetch";
-import * as XLSX from "xlsx";
+import { Search, Download, ArrowLeft, ArrowRight, Clock, Coffee, LogOut, ChevronDown } from "lucide-react";
+import { empClockedIn, empClockedOut, empBreakStart, empBreakEnd, getDatewiseAttendance } from "/pages/api/fetch";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+
 
 
 function ManageEmp() {
-
-
-
     // Get date from URL param if available, otherwise use current date
     const getInitialDate = () => {
         if (typeof window !== 'undefined') {
@@ -38,7 +36,10 @@ function ManageEmp() {
     const [refresh, setRefresh] = useState(false);
     const [filterType, setFilterType] = useState('all');
     const [exportType, setExportType] = useState("today");
-    
+    const [showClockInModal, setShowClockInModal] = useState(false);
+    const [showClockOutModal, setShowClockOutModal] = useState(false);
+    const [selectedEmp, setSelectedEmp] = useState(null);
+
     const handleExport = async () => {
         if (exportType === "today") {
             exportToExcel(employees, "Employee_Attendance_Today.xlsx");
@@ -46,86 +47,106 @@ function ManageEmp() {
             setLoading(true);
             await fetchLast7DaysAttendance();  // Wait for all data to be fetched
             setLoading(false);
-    
+
             // Export after data is successfully fetched
             exportToExcel(employees, "Employee_Attendance_Last_7_Days.xlsx");
         }
     };
-    
-    
 
-    const exportToExcel = (data, fileName) => {
+
+    const exportToExcel = async (data, fileName) => {
         if (!data || data.length === 0) {
             alert("No data available to export.");
             return;
         }
-    
-        const formattedData = data.map(emp => ({
-            "Employee ID": emp.employee_id,
-            "First Name": emp.first_name,
-            "Last Name": emp.last_name,
-            "Email": emp.email,
-            "Department": emp.department,
-            "Role": emp.role,
-            "Attendance Date": emp.attendance_date?.split(" ")[0] || "N/A",
-            "Clock In": formatTimeWithAMPM(emp.clock_in) || "N/A",
-            "Clock Out": formatTimeWithAMPM(emp.clock_out) || "N/A",
-            "Total Work Time": formatStopwatchTime(emp.total_work_time),
-            "Total Break Time": formatStopwatchTime(emp.total_break_time),
-            "Status": emp.attendance_status || "N/A",
-        }));
-    
-        const worksheet = XLSX.utils.json_to_sheet(formattedData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance Report");
-    
-        XLSX.writeFile(workbook, fileName);
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("Attendance Report");
+
+        // Define columns
+        worksheet.columns = [
+            { header: "Employee ID", key: "employee_id", width: 15 },
+            { header: "First Name", key: "first_name", width: 20 },
+            { header: "Last Name", key: "last_name", width: 20 },
+            { header: "Email", key: "email", width: 25 },
+            { header: "Department", key: "department", width: 20 },
+            { header: "Role", key: "role", width: 15 },
+            // { header: "Attendance Date", key: "attendance_date", width: 20 },
+            { header: "Clock In", key: "clock_in", width: 15 },
+            { header: "Clock Out", key: "clock_out", width: 15 },
+            { header: "Total Idle Hours", key: "Idle_Hours", width: 20 },
+            { header: "Total Active Hours", key: "Active_Hours", width: 20 },
+            { header: "Total Hours", key: "Total_Hours", width: 20 },
+            { header: "Status", key: "attendance_status", width: 15 },
+        ];
+
+        // Add rows
+        data.forEach(emp => {
+            worksheet.addRow({
+                employee_id: emp.employee_id,
+                first_name: emp.first_name,
+                last_name: emp.last_name,
+                email: emp.email,
+                department: emp.department,
+                role: emp.role,
+                // attendance_date: emp.attendance_date?.split(" ")[0] || "N/A",
+                clock_in: formatTimeWithAMPM(emp.clock_in) || "On Leave",
+                clock_out: formatTimeWithAMPM(emp.clock_out) || "On Leave",
+                Idle_Hours: formatStopwatchTime(emp.total_break_time),
+                Active_Hours : formatStopwatchTime(emp.total_work_time),
+                Total_Hours: formatStopwatchTime(emp.total_time),
+                attendance_status: emp.attendance_status || "On Leave",
+            });
+        });
+
+        // Protect worksheet (Users can view but cannot modify without a password)
+        worksheet.protect("teamice123", {
+            selectLockedCells: true,  // Allows viewing but no modifications
+            formatCells: false,
+            insertRows: false,
+            deleteRows: false,
+            editObjects: false
+        });
+
+        // Save workbook
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        saveAs(blob, fileName);
     };
-    
-    
+
     const applyFilters = (employees) => {
         // First apply search filter
         let filtered = employees.filter(emp =>
-          (emp.first_name + " " + emp.last_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
-          emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          emp.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          emp.role?.toLowerCase().includes(searchQuery.toLowerCase())
+            (emp.first_name + " " + emp.last_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
+            emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            emp.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            emp.role?.toLowerCase().includes(searchQuery.toLowerCase())
         );
-        
+
         // Then apply status filter
         switch (filterType) {
-          case 'not_clocked_in':
-            filtered = filtered.filter(emp => !emp.clock_in);
-            break;
-          case 'on_break':
-            filtered = filtered.filter(emp => emp.attendance_status === 'inactive');
-            break;
-          case 'active':
-            filtered = filtered.filter(emp => emp.attendance_status === 'active' && !emp.clock_out);
-            break;
-          case 'finished':
-            filtered = filtered.filter(emp => emp.attendance_status === 'day-over' || !!emp.clock_out);
-            break;
-          default:
-           //*
-            break;
+            case 'not_clocked_in':
+                filtered = filtered.filter(emp => !emp.clock_in);
+                break;
+            case 'on_break':
+                filtered = filtered.filter(emp => emp.attendance_status === 'inactive');
+                break;
+            case 'active':
+                filtered = filtered.filter(emp => emp.attendance_status === 'active' && !emp.clock_out);
+                break;
+            case 'finished':
+                filtered = filtered.filter(emp => emp.attendance_status === 'day-over' || !!emp.clock_out);
+                break;
+            default:
+                //*
+                break;
         }
-        
+
         return filtered;
-      };
-    const handleFormSubmit = async (formData) => {
-        try {
-            await createEmployee(formData);
-            setIsFormOpen(false);
-            await fetchAttendanceData(selectedDate);
-        } catch (error) {
-            console.error("Error creating employee:", error);
-        }
     };
 
-
     const fetchAttendanceData = async (date = new Date()) => {
-        
+
         setLoading(true);
         setError(null);
         try {
@@ -142,21 +163,21 @@ function ManageEmp() {
     const fetchLast7DaysAttendance = async () => {
         setLoading(true);
         setError(null);
-        
+
         let allData = [];
         const today = new Date();
-    
+
         try {
             for (let i = 0; i < 7; i++) {
                 const date = new Date();
                 date.setDate(today.getDate() - i);  // Get last 7 days
-                
+
                 const dateString = date.toISOString().split('T')[0];
                 const data = await getDatewiseAttendance(dateString);
-                
+
                 allData = [...allData, ...data];  // Append each day's data
             }
-    
+
             setEmployees(allData);  // Store aggregated data
         } catch (error) {
             setError("Failed to fetch last 7 days of attendance.");
@@ -165,7 +186,7 @@ function ManageEmp() {
             setLoading(false);
         }
     };
-    
+
 
     // Update URL when date changes
     const updateUrlWithDate = (date) => {
@@ -197,16 +218,7 @@ function ManageEmp() {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [entriesPerPage, searchQuery,filterType]);
-
-    const handleOpenForm = () => {
-        setIsFormOpen(true);
-    };
-
-    const handleCloseForm = () => {
-        setIsFormOpen(false);
-    };
-
+    }, [entriesPerPage, searchQuery, filterType]);
     const handleBreak = async (id) => {
         // Find the employee in the array
         const employee = employees.find(emp => emp.employee_id === id);
@@ -285,58 +297,73 @@ function ManageEmp() {
                 return 'bg-gray-100 text-gray-800';
         }
     };
+    const handleClockIn = (emp) => {
+        setSelectedEmp(emp);
+        setShowClockInModal(true);
+    };
 
-    async function handleClockIn(id) {
+    const handleClockOut = (emp) => {
+        setSelectedEmp(emp);
+        setShowClockOutModal(true);
+    };
+
+    const confirmClockIn = async (id) => {
         try {
             await empClockedIn(id);
             setRefresh(!refresh);
+            setShowClockInModal(false);
+
         } catch (e) {
             console.error(e);
+            alert(` Failed to clock in for ${emp.first_name} (${emp.email})`);
         }
-    }
+    };
 
-    async function handleClockOut(id) {
+    const confirmClockOut = async (id) => {
         try {
             await empClockedOut(id);
             setRefresh(!refresh);
+            setShowClockOutModal(false);
+
         } catch (e) {
             console.error(e);
+            alert(` Failed to clock out for ${emp.first_name} (${emp.email})`);
         }
-    }
+    };
+
+
     function formatTimeWithAMPM(timestamp) {
         if (!timestamp) return "N/A";
-        
-        // Check if timestamp is in seconds (Unix timestamp typically in seconds)
         // If less than 13 digits, it's likely in seconds and needs to be multiplied by 1000
         const timeInMs = timestamp.toString().length < 13 ? timestamp * 1000 : timestamp;
-        
-        return new Date(timeInMs).toLocaleTimeString('en-US', {
-          hour: '2-digit', 
-          minute: '2-digit',
-          hour12: true  // This ensures AM/PM format
-        });
-      }
 
-      function formatStopwatchTime(seconds) {
+        return new Date(timeInMs).toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+    }
+
+    function formatStopwatchTime(seconds) {
         if (!seconds) return "00:00:00";
-        
+
         // If it's already in HH:MM:SS format
         if (typeof seconds === 'string' && seconds.includes(':')) {
-          const [hours, minutes, secs] = seconds.split(":").map(Number);
-          return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+            const [hours, minutes, secs] = seconds.split(":").map(Number);
+            return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
         }
-        
+
         // Convert to number if it's not already
         const totalSeconds = Number(seconds);
-        
+
         // Calculate hours, minutes, seconds
         const hours = Math.floor(totalSeconds / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const secs = Math.floor(totalSeconds % 60);
-        
+
         // Format as HH:MM:SS
         return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-      }
+    }
 
     // Function to handle date change
     const handleDateChange = (date) => {
@@ -347,16 +374,15 @@ function ManageEmp() {
         <div className="w-full mx-auto p-6 bg-gray-50 min-h-screen">
             <div className="max-w-9xl mx-auto bg-white rounded-xl shadow-sm">
                 {/* Header with title and action buttons */}
-                <div className="flex flex-col sm:flex-row justify-between items-center p-6 border-b">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-800">Attendance Dashboard</h1>
-                        <p className="text-gray-500 mt-1">Track and manage employee time records</p>
-                    </div>
-                    <div className="flex gap-3 mt-4 sm:mt-0">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center p-6 border-b gap-4">
+    <div>
+        <h1 className="text-2xl font-bold text-gray-800">Attendance Dashboard</h1>
+        <p className="text-gray-500 mt-1">Track and manage employee time records</p>
+    </div>
+    <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+        <div className="flex flex-wrap items-center gap-3">
+            <div>
 
-                        <div className="flex items-center gap-4">
-                            <div>
-                                {/* <label className="block text-sm font-medium text-gray-700 mb-1">Select Date</label> */}
                                 <DatePicker
                                     selected={selectedDate}
                                     onChange={handleDateChange}
@@ -367,79 +393,65 @@ function ManageEmp() {
                             </div>
                         </div>
                         <div className="relative">
-  <select
-    className="appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none"
-    value={filterType}
-    onChange={(e) => setFilterType(e.target.value)}
-  >
-    <option value="all">All Employees</option>
-    <option value="not_clocked_in">Not Clocked In</option>
-    <option value="on_break">On Break</option>
-    <option value="active">Active</option>
-    <option value="finished">Finished</option>
-  </select>
-  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-    <ChevronDown size={16} />
-  </div>
-</div>
-                        <div className="flex items-center relative">
-                            <input
-                                type="text"
-                                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full"
-                                placeholder="Search employees..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                <Search size={16} className="text-gray-400" />
-                            </div>
-                        </div>
+                <select
+                    className="appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none"
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                >
+                    <option value="all">All Employees</option>
+                    <option value="not_clocked_in">Not Clocked In</option>
+                    <option value="on_break">On Break</option>
+                    <option value="active">Active</option>
+                    <option value="finished">Finished</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                    <ChevronDown size={16} />
+                </div>
+            </div>
+            <div className="flex items-center relative w-full sm:w-auto">
+                <input
+                    type="text"
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full"
+                    placeholder="Search employees..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Search size={16} className="text-gray-400" />
+                </div>
+            </div>
                         <div className="flex items-center gap-4">
-    <select 
-        className="border border-blue-600 text-blue-600 rounded-md p-2"
-        onChange={(e) => setExportType(e.target.value)}
-        value={exportType}
-    >
-        <option value="today">Today’s Data</option>
-        <option value="last7days">Last 7 Days</option>
-    </select>
-
-    <Button
-        variant="outline"
-        className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
-        onClick={() => handleExport()}
-    >
-        <Download size={16} />
-        Export Data
-    </Button>
-</div>
-                        {loading && (
-                            <div className="mt-4 flex items-center text-blue-600">
-                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Loading attendance data...
-                            </div>
-                        )}
-                        {error && (
-                            <div className="mt-4 text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
-                                {error}
-                            </div>
-                        )}
+                        <div className="flex flex-wrap items-center gap-3 mt-3 sm:mt-0">
+            <select
+                className="border border-blue-600 text-blue-600 rounded-md p-2 focus:outline-none hover:bg-blue-50 transition-all"
+                onChange={(e) => setExportType(e.target.value)}
+                value={exportType}
+            >
+                <option value="today">Today's Data</option>
+                <option value="last7days">Last 7 Days</option>
+            </select>
+            <Button
+                variant="outline"
+                className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition-all"
+                onClick={() => handleExport()}
+            >
+                <Download size={16} />
+                Export
+            </Button>
+        </div>
+                        </div>
+                      
 
                     </div>
                 </div>
 
                 {/* Filters and controls */}
-                {/* <div className="p-6 border-b">
-                 
-                </div> */}
+
 
                 {/* Data Table */}
                 <div className="flex flex-col overflow-x-auto overflow-y-auto min-h-[70vh] max-h-[70vh]">
 
-                {/* <div className="overflow-x-auto min-h-96"> */}
+                    {/* <div className="overflow-x-auto min-h-96"> */}
                     {filteredEmployees.length > 0 ? (
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead>
@@ -461,18 +473,31 @@ function ManageEmp() {
                                     </th>
                                 </tr>
                             </thead>
-
+                            {loading && (
+                            <div className="mt-4 flex items-center text-blue-600">
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Loading attendance data...
+                            </div>
+                        )}
+                        {error && (
+                            <div className="mt-4 text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
+                                {error}
+                            </div>
+                        )}
                             <tbody className="bg-white divide-y divide-gray-200 ">
                                 {currentEmployees.map((emp) => (
                                     <tr key={emp.employee_id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 {emp.avatar ? (
-                                                   <img
-                                                   src={`http://localhost:4000${emp.avatar}`}
-                                                   alt={`${emp.first_name} ${emp.last_name}`}
-                                                   className="w-10 h-10 rounded-full object-cover"
-                                               />
+                                                    <img
+                                                        src={`http://localhost:4000${emp.avatar}`}
+                                                        alt={`${emp.first_name} ${emp.last_name}`}
+                                                        className="w-10 h-10 rounded-full object-cover"
+                                                    />
                                                 ) : (
                                                     <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-blue-600">
                                                         {getInitials(emp.first_name, emp.last_name)}
@@ -491,23 +516,23 @@ function ManageEmp() {
                                             {emp.clock_out ? (
                                                 <div className="flex items-center space-x-3">
                                                     <div className="flex flex-col items-center">
-                                                        <span className="text-xs font-medium text-gray-700 mb-1">Net Work</span>
+                                                        <span className="text-xs font-medium text-gray-700 mb-1">Active Hours</span>
                                                         <span className="bg-green-100 text-green-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
-                                                        {formatStopwatchTime(emp.total_work_time)}
+                                                            {formatStopwatchTime(emp.total_work_time)}
                                                         </span>
                                                     </div>
 
                                                     <div className="flex flex-col items-center">
-                                                        <span className="text-xs font-medium text-gray-700 mb-1">Break</span>
+                                                        <span className="text-xs font-medium text-gray-700 mb-1">Idle Hours</span>
                                                         <span className="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
-                                                        {formatStopwatchTime(emp.total_break_time)}
+                                                            {formatStopwatchTime(emp.total_break_time)}
                                                         </span>
                                                     </div>
 
                                                     <div className="flex flex-col items-center">
-                                                        <span className="text-xs font-medium text-gray-700 mb-1">Total</span>
+                                                        <span className="text-xs font-medium text-gray-700 mb-1">Total Hours</span>
                                                         <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
-                                                        {formatStopwatchTime(emp.total_time)}
+                                                            {formatStopwatchTime(emp.total_time)}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -535,7 +560,7 @@ function ManageEmp() {
                                                     <Button
                                                         size="sm"
                                                         className={`flex items-center gap-1 ${!!emp.clock_in ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600'}`}
-                                                        onClick={() => handleClockIn(emp.employee_id)}
+                                                        onClick={() => handleClockIn(emp)}
                                                         disabled={!!emp.clock_in}
                                                     >
                                                         <Clock size={14} />
@@ -553,7 +578,7 @@ function ManageEmp() {
                                                     <Button
                                                         size="sm"
                                                         className={`flex items-center gap-1 ${!emp.clock_in || !!emp.clock_out ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-red-500 text-white hover:bg-red-600'}`}
-                                                        onClick={() => handleClockOut(emp.employee_id)}
+                                                        onClick={() => handleClockOut(emp)}
                                                         disabled={!emp.clock_in || !!emp.clock_out}
                                                     >
                                                         <LogOut size={14} />
@@ -563,6 +588,91 @@ function ManageEmp() {
                                             ) : (
                                                 <div className="text-sm text-gray-500 italic">
                                                     Day completed
+                                                </div>
+                                            )}
+                                            {/* Clock In Modal */}
+                                            {showClockInModal && (
+                                                <div className="fixed inset-0 backdrop-blur-md bg-gray-900/60 flex items-center justify-center z-50">
+                                                    <div className="bg-white/90 dark:bg-gray-800/90 p-6 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700">
+                                                        <div className="flex justify-between items-center mb-4">
+                                                            <h2 className="text-xl font-bold text-gray-800 dark:text-white">Confirm Clock In</h2>
+                                                            <button
+                                                                onClick={() => setShowClockInModal(false)}
+                                                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                            >
+                                                                <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="text-center mb-6">
+                                                            <svg className="mx-auto mb-4 text-blue-500 w-12 h-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                            <p className="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to clock in for:</p>
+                                                            <p className="font-semibold text-lg text-gray-800 dark:text-white">{selectedEmp.first_name}</p>
+                                                            <p className="text-gray-500 dark:text-gray-400">{selectedEmp.email}</p>
+                                                        </div>
+
+                                                        <div className="flex justify-center space-x-3 mt-6">
+                                                            <button
+                                                                onClick={() => setShowClockInModal(false)}
+                                                                className="px-4 py-2.5 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 focus:ring-4 focus:ring-gray-300 transition-colors"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                            <button
+                                                                onClick={() => confirmClockIn(selectedEmp.employee_id)}
+                                                                className="px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors"
+                                                            >
+                                                                Confirm
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Clock Out Modal */}
+                                            {showClockOutModal && (
+                                                <div className="fixed inset-0 backdrop-blur-md bg-gray-900/60 flex items-center justify-center z-50">
+                                                    <div className="bg-white/90 dark:bg-gray-800/90 p-6 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700">
+                                                        <div className="flex justify-between items-center mb-4">
+                                                            <h2 className="text-xl font-bold text-gray-800 dark:text-white">Confirm Clock Out</h2>
+                                                            <button
+                                                                onClick={() => setShowClockOutModal(false)}
+                                                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                            >
+                                                                <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="text-center mb-6">
+                                                            <svg className="mx-auto mb-4 text-red-500 w-12 h-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                            <p className="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to clock out for:</p>
+                                                            <p className="font-semibold text-lg text-gray-800 dark:text-white">{selectedEmp.first_name}</p>
+                                                            <p className="text-gray-500 dark:text-gray-400">{selectedEmp.email}</p>
+                                                        </div>
+
+                                                        <div className="flex justify-center space-x-3 mt-6">
+                                                            <button
+                                                                onClick={() => setShowClockOutModal(false)}
+                                                                className="px-4 py-2.5 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 focus:ring-4 focus:ring-gray-300 transition-colors"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                            <button
+                                                                onClick={() => confirmClockOut(selectedEmp.employee_id)}
+                                                                className="px-4 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 focus:ring-4 focus:ring-red-300 transition-colors"
+                                                            >
+                                                                Confirm
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             )}
                                         </td>
@@ -579,7 +689,7 @@ function ManageEmp() {
                             </div>
                             <p className="text-lg font-medium text-gray-600">No employees found</p>
                             <p className="mt-1 text-gray-500">Try adjusting your search or date filters</p>
-                          
+
                         </div>
                     )}
                 </div>
@@ -588,23 +698,23 @@ function ManageEmp() {
                 {filteredEmployees.length > 0 && (
                     <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center">
                         <div className="flex items-center mb-4 sm:mb-0">
-                        <span className="text-black mr-2">Show</span>
-                        <div className="relative">
-                            <select
-                                className="appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none"
-                                value={entriesPerPage}
-                                onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-                            >
-                                <option value={5}>5</option>
-                                <option value={10}>10</option>
-                                <option value={15}>15</option>
-                            </select>
-                            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                <ChevronDown size={16} />
+                            <span className="text-black mr-2">Show</span>
+                            <div className="relative">
+                                <select
+                                    className="appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none"
+                                    value={entriesPerPage}
+                                    onChange={(e) => setEntriesPerPage(Number(e.target.value))}
+                                >
+                                    <option value={5}>5</option>
+                                    <option value={10}>10</option>
+                                    <option value={15}>15</option>
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                    <ChevronDown size={16} />
+                                </div>
                             </div>
+                            <span className="text-black ml-2">entries</span>
                         </div>
-                        <span className="text-black ml-2">entries</span>
-                    </div>
                         <div className="text-sm text-gray-700 mb-4 sm:mb-0">
                             Showing <span className="font-medium">{indexOfFirstEmployee + 1}</span> to <span className="font-medium">{Math.min(indexOfLastEmployee, filteredEmployees.length)}</span> of <span className="font-medium">{filteredEmployees.length}</span> entries
                         </div>
@@ -649,12 +759,7 @@ function ManageEmp() {
                 )}
             </div>
 
-            {/* Form Modal */}
-            <FormPane
-                isOpen={isFormOpen}
-                onClose={handleCloseForm}
-                onSubmit={handleFormSubmit}
-            />
+
         </div>
     );
 }

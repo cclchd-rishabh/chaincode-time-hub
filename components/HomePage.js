@@ -3,32 +3,33 @@ import Link from "next/link";
 import { 
   Users, 
   Clock, 
-  Calendar, 
   Download,
   Code,
   ArrowRight,
-  Shield,
-  BarChart3
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
+import { useSelector } from "react-redux";
+import Image from 'next/image';
 
 export default function EnhancedLandingPage() {
+    const { isAuthenticated, role } = useSelector((state) => state.auth);
   const features = [
     {
       icon: <Users className="w-6 h-6 text-blue-600" />,
       title: "Team Management",
-      description: "Comprehensive profile and role assignment system"
+      description: "Effortlessly manage profiles, roles."
     },
     {
       icon: <Clock className="w-6 h-6 text-blue-600" />,
       title: "Time Tracking",
-      description: "Precise attendance with real-time monitoring"
+      description: "Accurate real-time attendance monitoring made easy."
     },
     {
       icon: <Download className="w-6 h-6 text-blue-600" />,
-      title: "Export Reports",
-      description: "One-click payroll-ready data exports"
+      title: "Seamless Reports",
+      description: "Generate and export payroll-ready reports in one click."
     }
+    
   ];
 
   return (
@@ -40,18 +41,25 @@ export default function EnhancedLandingPage() {
       <div className="container max-w-6xl mx-auto p-8 z-10">
         <div className="flex flex-col items-center mb-10">
           <div className="flex items-center mb-4">
-            <div className="h-14 w-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
-              <Code className="text-white" size={28} />
-            </div>
+            {/* <div className="h-14 w-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mr-4 shadow-lg"> */}
+              <Image 
+                                          src="/logo.png"       
+                                          alt="ChainCode Logo" 
+                                          width={120}           
+                                          height={120}          
+                                          className="mr-2"     
+                                      />
+            {/* </div> */}
             <div>
+              
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Chaincode Consulting
+                ChainCode Consulting
               </h1>
-              <p className="text-gray-600 text-lg">Employee Management System</p>
+              <p className="text-gray-600 text-lg">Mining Ideas, Minting Success</p>
             </div>
           </div>
           <p className="text-gray-700 text-center max-w-2xl text-lg mb-4">
-            A powerful platform designed to streamline workforce management and boost productivity
+            A platform designed to streamline workforce management and boost productivity
           </p>
         </div>
         
@@ -70,12 +78,14 @@ export default function EnhancedLandingPage() {
         </div>
         
         <div className="flex justify-center mt-6">
-          <Link href="/manage-emp">
-            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-10 py-6 rounded-xl text-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 group">
-              Management Console
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
+         
+        <Link href={isAuthenticated ? "/manage-emp" : "/login"} passHref>
+      <button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-7 py-3 rounded-xl text-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 group">
+        {isAuthenticated ? "Management Console" : "Login"}
+        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+      </button>
+    </Link>
+  
         </div>
       </div>
     </div>

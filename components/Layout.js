@@ -1,7 +1,5 @@
 import React from 'react';
 import Navbar from './Navbar';
-import { useEffect } from 'react';
-// import { AuthProvider } from './context/AuthContext'
 import { useSelector } from "react-redux";
 import Footer from "./Footer"
 function Layout({ children }) {

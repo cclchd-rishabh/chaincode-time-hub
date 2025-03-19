@@ -4,13 +4,11 @@ import * as Yup from "yup";
 import { Search, Edit, Trash2, Plus, X, ChevronDown } from "lucide-react";
 import { editEmployees, createEmployee, deleteEmployee, getAllEmployees } from "@/pages/api/fetch";
 import { Button } from "@/components/ui/button";
-import { toast } from "react-toastify";
-import { useAddEmployeeMutation } from "../store/api/apiSlice";
 
 const roleOptions = {
 
     HR: ["Manager (Senior)", "Head HR (Senior)", "HR Executive (Junior)", "HR Executive (Senior)", "Intern (Intern)"],
-    Engineering: [
+    IT: [
         "Full Stack Developer (Junior)", "Full Stack Developer (Senior)", "Full Stack Developer (Tech Lead)", "Full Stack Developer (Intern)",
         "Backend Developer (Junior)", "Backend Developer (Senior)", "Backend Developer (Tech Lead)", "Backend Developer (Intern)",
         "Blockchain Developer (Junior)", "Blockchain Developer (Senior)", "Blockchain Developer (Tech Lead)", "Blockchain Developer (Intern)",
@@ -18,7 +16,11 @@ const roleOptions = {
         "DevOps (Junior)", "DevOps (Senior)", "DevOps (Tech Lead)", "DevOps (Intern)"
     ],
     Sales: ["Sales Executive (Junior)", "Sales Executive (Senior)", "Sales Manager (Senior)", "Business Development (Junior)", "Business Development (Senior)", "Intern (Intern)"],
-    Marketing: ["Marketing Lead (Senior)", "SEO Specialist (Junior)", "SEO Specialist (Senior)", "Content Writer (Junior)", "Content Writer (Senior)", "Intern (Intern)"],
+    Marketing: ["Marketing Lead (Senior)", "Digital Marketing Intern" ,"SEO Specialist (Junior)", "SEO Specialist (Senior)", "Content Writer (Junior)", "Content Writer (Senior)", "Intern (Intern)"],
+    Operations : ["HR cum Account Executive"],
+    Design_Team: ["UI & UX Designer Trainee" , "Graphic Designer (Senior)"],
+
+
 
 };
 
@@ -69,7 +71,7 @@ function EmpEdit() {
         first_name: Yup.string().required("First Name is required").max(20, "Must be 20 characters or less"),
         last_name: Yup.string().max(20, "Must be 20 characters or less"),
         email: Yup.string().email("Invalid email format").required("Email is required").max(50, "Must be 50 characters or less"),
-        avatar: Yup.mixed()
+        avatar: Yup.mixed().nullable().notRequired()
             .test('fileSize', 'File size must be less than 10MB', (value) => {
                 if (!value) return true; // Allow empty values
                 return value.size <= 10 * 1024 * 1024; // 10MB
@@ -168,7 +170,6 @@ function EmpEdit() {
             console.error("Error deleting employee:", error);
         }
     };
-    // const [addEmployee, { isLoading }] = useAddEmployeeMutation();
 
     const handleAddNew = () => {
         setEditEmployee(null);
@@ -177,7 +178,6 @@ function EmpEdit() {
 
     return (
         <div className="w-full mx-auto p-6 bg-gray-50 min-h-screen">
-            {/* Header and Add Button */}
             <div className="max-w-9xl mx-auto bg-white rounded-xl shadow-sm">
                 <div className="flex flex-col sm:flex-row justify-between items-center p-6 border-b">
                     <div>
@@ -186,25 +186,27 @@ function EmpEdit() {
                     </div>
                     <div className="flex gap-3 mt-4 sm:mt-0">
 
-                        <div className="flex items-center relative">
-                            <input
-                                type="text"
-                                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full"
-                                placeholder="Search employees..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                <Search size={16} className="text-gray-400" />
-                            </div>
-                        </div>
-                        <Button
-                            onClick={handleAddNew}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2"
-                        >
-                            <Plus size={16} />
-                            Add Employee
-                        </Button>
+                    <div className="flex items-center gap-4">
+  <div className="flex items-center relative w-full">
+    <input
+      type="text"
+      className="pl-10 pr-4 py-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full h-10"
+      placeholder="Search employees..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+    />
+    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+      <Search size={16} className="text-gray-400" />
+    </div>
+  </div>
+  <Button
+    onClick={handleAddNew}
+    className="bg-blue-500 hover:bg-blue-600 text-white px-4 h-10 rounded-md flex items-center gap-2"
+  >
+    <Plus size={16} />
+    Add Employee
+  </Button>
+</div>
                         {loading && (
                             <div className="mt-4 flex items-center text-blue-600">
                                 <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -398,21 +400,24 @@ function EmpEdit() {
                                     <Form className="space-y-4">
                                         {/* First Name */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">First Name  <span className="text-red-500">*</span></label>
+                                        
                                             <Field type="text" name="first_name" className="w-full p-2 border rounded-lg" />
                                             <ErrorMessage name="first_name" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
 
                                         {/* Last Name */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name  </label>
+                                          
                                             <Field type="text" name="last_name" className="w-full p-2 border rounded-lg" />
                                             <ErrorMessage name="last_name" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
 
                                         {/* Email */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Email  <span className="text-red-500">*</span></label>
+                                          
                                             <Field type="email" name="email" className="w-full p-2 border rounded-lg" />
                                             <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>

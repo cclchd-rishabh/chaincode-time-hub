@@ -1,13 +1,12 @@
 import 'isomorphic-unfetch';
 import toast from "react-hot-toast";
-import {useRouter} from 'next/router'
 const getRootUrl = "http://localhost:4000";
 
 console.log("Inside");
 
 export default async function sendRequest(path, opts = {}, router) {
     
-    const token = sessionStorage.getItem('token'); // Ensure the token is stored correctly
+    const token = sessionStorage.getItem('token'); 
     console.log("Token:", token);
 
     console.log("Here-also");
@@ -33,9 +32,6 @@ export default async function sendRequest(path, opts = {}, router) {
     if (response.status === 401) {
         toast.error("Invalid Credentials");
 
-        if (router) {
-            router.push('/'); // Redirect to login page
-        }
     }
 
     console.log(data);

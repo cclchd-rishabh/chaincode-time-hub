@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Image from 'next/image';
-import { FaEye, FaEyeSlash, FaFacebookF } from 'react-icons/fa';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import {loginUser} from '/pages/api/auth';
 import {useRouter} from 'next/router'
 import { useDispatch } from "react-redux";
@@ -41,10 +41,9 @@ export default function LoginPage() {
             sessionStorage.setItem('token', access_token);
             sessionStorage.setItem('role',role)
             console.log("Access Token:", access_token);
-            // login(access_token);
             dispatch(login(access_token,role));
           
-            Router.push('/home');
+            Router.push('/manage-emp');
         } catch (error) {
             console.error("Login failed:", error.message || error);
         }
