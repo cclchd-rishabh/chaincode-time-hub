@@ -93,7 +93,7 @@ function ManageEmp() {
                 clock_in: formatTimeWithAMPM(emp.clock_in) || "On Leave",
                 clock_out: formatTimeWithAMPM(emp.clock_out) || "On Leave",
                 Idle_Hours: formatStopwatchTime(emp.total_break_time),
-                Active_Hours : formatStopwatchTime(emp.total_work_time),
+                Active_Hours: formatStopwatchTime(emp.total_work_time),
                 Total_Hours: formatStopwatchTime(emp.total_time),
                 attendance_status: emp.attendance_status || "On Leave",
             });
@@ -375,13 +375,13 @@ function ManageEmp() {
             <div className="max-w-9xl mx-auto bg-white rounded-xl shadow-sm">
                 {/* Header with title and action buttons */}
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center p-6 border-b gap-4">
-    <div>
-        <h1 className="text-2xl font-bold text-gray-800">Attendance Dashboard</h1>
-        <p className="text-gray-500 mt-1">Track and manage employee time records</p>
-    </div>
-    <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-        <div className="flex flex-wrap items-center gap-3">
-            <div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-800">Attendance Dashboard</h1>
+                        <p className="text-gray-500 mt-1">Track and manage employee time records</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                        <div className="flex flex-wrap items-center gap-3">
+                            <div>
 
                                 <DatePicker
                                     selected={selectedDate}
@@ -393,54 +393,54 @@ function ManageEmp() {
                             </div>
                         </div>
                         <div className="relative">
-                <select
-                    className="appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none"
-                    value={filterType}
-                    onChange={(e) => setFilterType(e.target.value)}
-                >
-                    <option value="all">All Employees</option>
-                    <option value="not_clocked_in">Not Clocked In</option>
-                    <option value="on_break">On Break</option>
-                    <option value="active">Active</option>
-                    <option value="finished">Finished</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <ChevronDown size={16} />
-                </div>
-            </div>
-            <div className="flex items-center relative w-full sm:w-auto">
-                <input
-                    type="text"
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full"
-                    placeholder="Search employees..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Search size={16} className="text-gray-400" />
-                </div>
-            </div>
-                        <div className="flex items-center gap-4">
-                        <div className="flex flex-wrap items-center gap-3 mt-3 sm:mt-0">
-            <select
-                className="border border-blue-600 text-blue-600 rounded-md p-2 focus:outline-none hover:bg-blue-50 transition-all"
-                onChange={(e) => setExportType(e.target.value)}
-                value={exportType}
-            >
-                <option value="today">Today's Data</option>
-                <option value="last7days">Last 7 Days</option>
-            </select>
-            <Button
-                variant="outline"
-                className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition-all"
-                onClick={() => handleExport()}
-            >
-                <Download size={16} />
-                Export
-            </Button>
-        </div>
+                            <select
+                                className="appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none w-full"
+                                value={filterType}
+                                onChange={(e) => setFilterType(e.target.value)}
+                            >
+                                <option value="all">All Employees</option>
+                                <option value="not_clocked_in">Not Clocked In</option>
+                                <option value="on_break">On Break</option>
+                                <option value="active">Active</option>
+                                <option value="finished">Finished</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                <ChevronDown size={16} />
+                            </div>
                         </div>
-                      
+                        <div className="flex items-center relative w-full sm:w-auto">
+                            <input
+                                type="text"
+                                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full"
+                                placeholder="Search employees..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <Search size={16} className="text-gray-400" />
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="flex flex-wrap items-center gap-3 mt-3 sm:mt-0">
+                                <select
+                                    className="border border-blue-600 text-blue-600 rounded-md p-2 focus:outline-none hover:bg-blue-50 transition-all"
+                                    onChange={(e) => setExportType(e.target.value)}
+                                    value={exportType}
+                                >
+                                    <option value="today">Today's Data</option>
+                                    <option value="last7days">Last 7 Days</option>
+                                </select>
+                                <Button
+                                    variant="outline"
+                                    className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition-all"
+                                    onClick={() => handleExport()}
+                                >
+                                    <Download size={16} />
+                                    Export
+                                </Button>
+                            </div>
+                        </div>
+
 
                     </div>
                 </div>
@@ -474,19 +474,19 @@ function ManageEmp() {
                                 </tr>
                             </thead>
                             {loading && (
-                            <div className="mt-4 flex items-center text-blue-600">
-                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Loading attendance data...
-                            </div>
-                        )}
-                        {error && (
-                            <div className="mt-4 text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
-                                {error}
-                            </div>
-                        )}
+                                <div className="mt-4 flex items-center text-blue-600">
+                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Loading attendance data...
+                                </div>
+                            )}
+                            {error && (
+                                <div className="mt-4 text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
+                                    {error}
+                                </div>
+                            )}
                             <tbody className="bg-white divide-y divide-gray-200 ">
                                 {currentEmployees.map((emp) => (
                                     <tr key={emp.employee_id} className="hover:bg-gray-50 transition-colors">
@@ -606,11 +606,16 @@ function ManageEmp() {
                                                             </button>
                                                         </div>
 
-                                                        <div className="text-center mb-6">
+                                                        <div className="text-center mb-6 flex  flex-col items-center">
                                                             <svg className="mx-auto mb-4 text-blue-500 w-12 h-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                             </svg>
                                                             <p className="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to clock in for:</p>
+                                                            <img 
+                                                        src={`http://localhost:4000${selectedEmp.avatar}`}
+                                                        alt={`${emp.first_name} ${emp.last_name}`}
+                                                        className="w-40 h-40 rounded-full object-cover mx-autos"
+                                                    />
                                                             <p className="font-semibold text-lg text-gray-800 dark:text-white">{selectedEmp.first_name}</p>
                                                             <p className="text-gray-500 dark:text-gray-400">{selectedEmp.email}</p>
                                                         </div>
