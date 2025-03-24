@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Search, Download, ArrowLeft, ArrowRight, Clock, Coffee, LogOut, ChevronDown } from "lucide-react";
+import { Search, ArrowLeft, ArrowRight, Clock, Coffee, LogOut, ChevronDown } from "lucide-react";
 import { empClockedIn, empClockedOut, empBreakStart, empBreakEnd, getDatewiseAttendance } from "/pages/api/fetch";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
+import DateRangeSelector from "./DateRangeSelector";
 
 
 
 function ManageEmp() {
+
+    
     // Get date from URL param if available, otherwise use current date
     const getInitialDate = () => {
         if (typeof window !== 'undefined') {
@@ -30,7 +31,6 @@ function ManageEmp() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedDate, setSelectedDate] = useState(getInitialDate);
-    const [attendanceData, setAttendanceData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [refresh, setRefresh] = useState(false);
@@ -40,79 +40,19 @@ function ManageEmp() {
     const [showClockOutModal, setShowClockOutModal] = useState(false);
     const [selectedEmp, setSelectedEmp] = useState(null);
 
-    const handleExport = async () => {
-        if (exportType === "today") {
-            exportToExcel(employees, "Employee_Attendance_Today.xlsx");
-        } else if (exportType === "last7days") {
-            setLoading(true);
-            await fetchLast7DaysAttendance();  // Wait for all data to be fetched
-            setLoading(false);
+    
 
-            // Export after data is successfully fetched
-            exportToExcel(employees, "Employee_Attendance_Last_7_Days.xlsx");
-        }
-    };
+  // Add this new export function specifically for date range
+ 
+  // Component for date range selection
 
 
-    const exportToExcel = async (data, fileName) => {
-        if (!data || data.length === 0) {
-            alert("No data available to export.");
-            return;
-        }
 
-        const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet("Attendance Report");
 
-        // Define columns
-        worksheet.columns = [
-            { header: "Employee ID", key: "employee_id", width: 15 },
-            { header: "First Name", key: "first_name", width: 20 },
-            { header: "Last Name", key: "last_name", width: 20 },
-            { header: "Email", key: "email", width: 25 },
-            { header: "Department", key: "department", width: 20 },
-            { header: "Role", key: "role", width: 15 },
-            // { header: "Attendance Date", key: "attendance_date", width: 20 },
-            { header: "Clock In", key: "clock_in", width: 15 },
-            { header: "Clock Out", key: "clock_out", width: 15 },
-            { header: "Total Idle Hours", key: "Idle_Hours", width: 20 },
-            { header: "Total Active Hours", key: "Active_Hours", width: 20 },
-            { header: "Total Hours", key: "Total_Hours", width: 20 },
-            { header: "Status", key: "attendance_status", width: 15 },
-        ];
+    // -----------------------------777565-65-6-5-656
 
-        // Add rows
-        data.forEach(emp => {
-            worksheet.addRow({
-                employee_id: emp.employee_id,
-                first_name: emp.first_name,
-                last_name: emp.last_name,
-                email: emp.email,
-                department: emp.department,
-                role: emp.role,
-                // attendance_date: emp.attendance_date?.split(" ")[0] || "N/A",
-                clock_in: formatTimeWithAMPM(emp.clock_in) || "On Leave",
-                clock_out: formatTimeWithAMPM(emp.clock_out) || "On Leave",
-                Idle_Hours: formatStopwatchTime(emp.total_break_time),
-                Active_Hours: formatStopwatchTime(emp.total_work_time),
-                Total_Hours: formatStopwatchTime(emp.total_time),
-                attendance_status: emp.attendance_status || "On Leave",
-            });
-        });
 
-        // Protect worksheet (Users can view but cannot modify without a password)
-        worksheet.protect("teamice123", {
-            selectLockedCells: true,  // Allows viewing but no modifications
-            formatCells: false,
-            insertRows: false,
-            deleteRows: false,
-            editObjects: false
-        });
 
-        // Save workbook
-        const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-        saveAs(blob, fileName);
-    };
 
     const applyFilters = (employees) => {
         // First apply search filter
@@ -160,33 +100,7 @@ function ManageEmp() {
             setLoading(false);
         }
     };
-    const fetchLast7DaysAttendance = async () => {
-        setLoading(true);
-        setError(null);
-
-        let allData = [];
-        const today = new Date();
-
-        try {
-            for (let i = 0; i < 7; i++) {
-                const date = new Date();
-                date.setDate(today.getDate() - i);  // Get last 7 days
-
-                const dateString = date.toISOString().split('T')[0];
-                const data = await getDatewiseAttendance(dateString);
-
-                allData = [...allData, ...data];  // Append each day's data
-            }
-
-            setEmployees(allData);  // Store aggregated data
-        } catch (error) {
-            setError("Failed to fetch last 7 days of attendance.");
-            console.error("Error fetching attendance:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
+ 
 
     // Update URL when date changes
     const updateUrlWithDate = (date) => {
@@ -421,7 +335,22 @@ function ManageEmp() {
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
-                            <div className="flex flex-wrap items-center gap-3 mt-3 sm:mt-0">
+                        <div className="export-controls">
+  {/* Your existing export controls */}
+  {/* <div className="existing-export">
+    <select value={exportType} onChange={(e) => setExportType(e.target.value)}>
+      <option value="today">Today</option>
+      <option value="last7days">Last 7 Days</option>
+    </select>
+    <button onClick={handleExport} disabled={loading}>
+      {loading ? "Exporting..." : "Export"}
+    </button>
+  </div> */}
+  
+  {/* New date range selector */}
+  <DateRangeSelector />
+</div>
+                            {/* <div className="flex flex-wrap items-center gap-3 mt-3 sm:mt-0">
                                 <select
                                     className="border border-blue-600 text-blue-600 rounded-md p-2 focus:outline-none hover:bg-blue-50 transition-all"
                                     onChange={(e) => setExportType(e.target.value)}
@@ -438,7 +367,7 @@ function ManageEmp() {
                                     <Download size={16} />
                                     Export
                                 </Button>
-                            </div>
+                            </div> */}
                         </div>
 
 
@@ -611,11 +540,17 @@ function ManageEmp() {
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                             </svg>
                                                             <p className="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to clock in for:</p>
-                                                            <img 
+                                                            {selectedEmp.avatar ? (
+                                                    <img
                                                         src={`http://localhost:4000${selectedEmp.avatar}`}
-                                                        alt={`${emp.first_name} ${emp.last_name}`}
-                                                        className="w-40 h-40 rounded-full object-cover mx-autos"
+                                                        alt={`${selectedEmp.first_name} ${selectedEmp.last_name}`}
+                                                        className="w-40 h-40 rounded-full object-cover"
                                                     />
+                                                ) : (
+                                                    <div className="w-40 h-40 rounded-full flex items-center justify-center text-white bg-blue-600">
+                                                        {getInitials(selectedEmp.first_name, selectedEmp.last_name)}
+                                                    </div>
+                                                )}
                                                             <p className="font-semibold text-lg text-gray-800 dark:text-white">{selectedEmp.first_name}</p>
                                                             <p className="text-gray-500 dark:text-gray-400">{selectedEmp.email}</p>
                                                         </div>
@@ -654,10 +589,21 @@ function ManageEmp() {
                                                             </button>
                                                         </div>
 
-                                                        <div className="text-center mb-6">
+                                                        <div className="text-center mb-6 flex  flex-col items-center">
                                                             <svg className="mx-auto mb-4 text-red-500 w-12 h-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                             </svg>
+                                                            {selectedEmp.avatar ? (
+                                                    <img
+                                                        src={`http://localhost:4000${selectedEmp.avatar}`}
+                                                        alt={`${selectedEmp.first_name} ${selectedEmp.last_name}`}
+                                                        className="w-40 h-40 rounded-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-40 h-40 rounded-full flex items-center justify-center text-white bg-blue-600">
+                                                        {getInitials(selectedEmp.first_name, selectedEmp.last_name)}
+                                                    </div>
+                                                )}
                                                             <p className="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to clock out for:</p>
                                                             <p className="font-semibold text-lg text-gray-800 dark:text-white">{selectedEmp.first_name}</p>
                                                             <p className="text-gray-500 dark:text-gray-400">{selectedEmp.email}</p>

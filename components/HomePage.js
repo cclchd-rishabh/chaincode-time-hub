@@ -55,7 +55,7 @@ export default function EnhancedLandingPage() {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 ChainCode Consulting
               </h1>
-              <p className="text-gray-600 text-lg">Mining Ideas, Minting Success</p>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Consulting</h2>
             </div>
           </div>
           <p className="text-gray-700 text-center max-w-2xl text-lg mb-4">

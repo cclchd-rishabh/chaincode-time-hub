@@ -34,6 +34,6 @@ export default async function sendRequest(path, opts = {}, router) {
 
     }
 
-    console.log(data);
+    console.log("Log from send-request ", data);
     return data;
 }
