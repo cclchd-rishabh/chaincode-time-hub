@@ -92,10 +92,11 @@ const DateRangeSelector = () => {
         
         if (!employeeMap[record.employee_id]) {
           employeeMap[record.employee_id] = {
-            employee_id: record.employee_id,
+            emp_id: record.emp_id,
             employee_name: `${record.first_name} ${record.last_name}`,
             department: record.department,
             role: record.role,
+            work_location: record.work_location,
             dates: {}
           };
         }
@@ -119,10 +120,11 @@ const DateRangeSelector = () => {
       
       // Define the fixed employee info columns
       const fixedColumns = [
-        { header: "Employee ID", key: "employee_id", width: 12 },
+        { header: "Employee ID", key: "emp_id", width: 12 },
         { header: "Name", key: "employee_name", width: 25 },
         { header: "Department", key: "department", width: 20 },
-        { header: "Role", key: "role", width: 25 }
+        { header: "Role", key: "role", width: 25 },
+        { header: "Work Location", key: "work_location", width: 12 }
       ];
       
       // Create dynamic columns for each date
@@ -211,15 +213,16 @@ const DateRangeSelector = () => {
       let rowIndex = 5;
       
       // Convert employees to array and sort by ID or name
-      const employees = Object.values(employeeMap).sort((a, b) => a.employee_id.toString().localeCompare(b.employee_id.toString()));
+      const employees = Object.values(employeeMap).sort((a, b) => a.emp_id.toString().localeCompare(b.emp_id.toString()));
       
       // Add employee rows
       employees.forEach(employee => {
         const rowData = {
-          employee_id: employee.employee_id,
+          emp_id: employee.emp_id,
           employee_name: employee.employee_name,
           department: employee.department,
-          role: employee.role
+          role: employee.role,
+          work_location: employee.work_location
         };
         
         // Track totals for this employee
@@ -230,12 +233,12 @@ const DateRangeSelector = () => {
         // Add data for each date
         sortedDates.forEach(date => {
           const attendanceData = employee.dates[date] || {
-            clock_in: "N/A",
-            clock_out: "N/A",
+            clock_in: "On Leave",
+            clock_out: "On Leave",
             idle_hours: "00:00:00",
             active_hours: "00:00:00",
             total_hours: "00:00:00",
-            status: "Absent",
+            status: "On Leave",
             raw_idle_hours: 0,
             raw_active_hours: 0,
             raw_total_hours: 0
@@ -280,7 +283,7 @@ const DateRangeSelector = () => {
               pattern: 'solid',
               fgColor: { argb: 'FFFFF3CD' } // Light yellow
             };
-          } else if (statusCell.value === 'On Leave' || statusCell.value === 'Absent') {
+          } else if (statusCell.value === 'On Leave' || statusCell.value === 'On Leave') {
             statusCell.fill = {
               type: 'pattern',
               pattern: 'solid',
@@ -372,16 +375,16 @@ const DateRangeSelector = () => {
       <button
         className="flex items-center gap-2 border border-blue-600 text-blue-600 rounded-md px-3 py-2 hover:bg-blue-50 transition-all focus:outline-none"
         onClick={() => setIsOpen(!isOpen)}
-      >
+      > 
         <FaCalendar size={16} />
-        <span>Date Range Export</span>
+        <span>Export</span>
         <FaChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       
       {isOpen && (
         <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-10 p-4">
           <div className="flex justify-between items-center mb-3">
-            <h3 className="text-sm font-medium text-gray-700">Export Date Range</h3>
+            <h3 className="text-sm font-medium text-gray-700">Select Dates</h3>
             <button 
               className="text-gray-400 hover:text-gray-600" 
               onClick={() => setIsOpen(false)}

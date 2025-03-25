@@ -7,21 +7,30 @@ import { Button } from "@/components/ui/button";
 
 const roleOptions = {
 
-    HR: ["Manager (Senior)", "Head HR (Senior)", "HR Executive (Junior)", "HR Executive (Senior)", "Intern (Intern)"],
-    IT: [
-        "Full Stack Developer (Junior)", "Full Stack Developer (Senior)", "Full Stack Developer (Tech Lead)", "Full Stack Developer (Intern)",
-        "Backend Developer (Junior)", "Backend Developer (Senior)", "Backend Developer (Tech Lead)", "Backend Developer (Intern)",
-        "Blockchain Developer (Junior)", "Blockchain Developer (Senior)", "Blockchain Developer (Tech Lead)", "Blockchain Developer (Intern)",
-        "Frontend Developer (Junior)", "Frontend Developer (Senior)", "Frontend Developer (Tech Lead)", "Frontend Developer (Intern)",
-        "DevOps (Junior)", "DevOps (Senior)", "DevOps (Tech Lead)", "DevOps (Intern)"
+    HR: [
+        "Manager - HR (Team ICE)", "Accounts Executive Cum HR", "Senior Executive - Inclusion & Culture", 
+        
     ],
-    Sales: ["Sales Executive (Junior)", "Sales Executive (Senior)", "Sales Manager (Senior)", "Business Development (Junior)", "Business Development (Senior)", "Intern (Intern)"],
-    Marketing: ["Marketing Lead (Senior)", "Digital Marketing Intern" ,"SEO Specialist (Junior)", "SEO Specialist (Senior)", "Content Writer (Junior)", "Content Writer (Senior)", "Intern (Intern)"],
-    Operations : ["HR cum Account Executive"],
-    Design_Team: ["UI & UX Designer Trainee" , "Graphic Designer (Senior)"],
-
-
-
+    IT: [
+        "Team Lead (Full Stack)", "Sr. Full Stack Developer", "Jr. Full Stack Developer", 
+       , "Intern - Full Stack", 
+        "Team Lead - Blockchain", "Blockchain Architect", "Sr. Blockchain Developer", 
+        "Jr. Blockchain Developer", "Blockchain Developer (Tech Lead)", "Intern-Blockchain/AI",  
+        "DevOps Engineer" 
+    ],
+    Marketing: [
+        "Intern-Sales & Marketing"
+    ],
+    Operations: [
+        "Accounts Executive", "HR cum Account Executive", "Project Co-ordinator"
+    ],
+    Design_Team: [
+        "Sr. Graphic Designer", "Trainee - UI/UX"
+    ],
+    Executive_Management : [
+        "CEO", "Director", "CTO"
+    ]
+    
 };
 
 
@@ -36,7 +45,7 @@ function EmpEdit() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [selectedDepartment, setSelectedDepartment] = useState("");
-
+    const [workLocation, setWorkLocation] = useState("");
 
     
     const getInitials = (firstName, lastName) => {
@@ -68,6 +77,7 @@ function EmpEdit() {
     }, [refresh]);
 
     const validationSchema = Yup.object({
+        emp_id: Yup.string().required("Employee ID is required").max(20, "Must be 20 characters or less"),
         first_name: Yup.string().required("First Name is required").max(20, "Must be 20 characters or less"),
         last_name: Yup.string().max(20, "Must be 20 characters or less"),
         email: Yup.string().email("Invalid email format").required("Email is required").max(50, "Must be 50 characters or less"),
@@ -82,6 +92,7 @@ function EmpEdit() {
             }),
         department: Yup.string().required("Department is required"),
         role: Yup.string().required("Role is required"),
+        work_location: Yup.string().required("Work Location is required"),
     });
     const handleEdit = (id) => {
         try {
@@ -106,7 +117,9 @@ function EmpEdit() {
         (emp.first_name + " " + emp.last_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
         emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
         emp.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        emp.role?.toLowerCase().includes(searchQuery.toLowerCase())
+        emp.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        emp.emp_id?.toLowerCase().includes(searchQuery.toLowerCase())
+       
     );
 
     // Pagination calculation
@@ -131,11 +144,13 @@ function EmpEdit() {
     
         try {
             const formData = new FormData();
+            formData.append("emp_id",formValues.emp_id);
             formData.append("first_name", formValues.first_name);
             formData.append("last_name", formValues.last_name);
             formData.append("email", formValues.email);
             formData.append("department", formValues.department);
             formData.append("role", formValues.role);
+            formData.append("work_location", formValues.work_location);
     
             if (formValues.avatar) {
                 formData.append("avatar", formValues.avatar);
@@ -231,6 +246,9 @@ function EmpEdit() {
                             <thead>
                                 <tr className="bg-gray-50 bg-gray-50 sticky top-0 z-10">
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Employee ID
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Name
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -250,6 +268,9 @@ function EmpEdit() {
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {currentEmployees.map((emp) => (
                                     <tr key={emp.employee_id} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {emp.emp_id}
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 {emp.avatar ? (
@@ -385,11 +406,13 @@ function EmpEdit() {
                             </h3>
                             <Formik
                                 initialValues={{
+                                    emp_id :editEmployee?.emp_id || "",
                                     first_name: editEmployee?.first_name || "",
                                     last_name: editEmployee?.last_name || "",
                                     email: editEmployee?.email || "",
                                     department: editEmployee?.department || "",
                                     role: editEmployee?.role || "",
+                                    work_location: editEmployee?.work_location || "",
                                     avatar: null,  // Updated to handle file
                                 }}
                                 validationSchema={validationSchema}
@@ -398,6 +421,13 @@ function EmpEdit() {
                             >
                                 {({ setFieldValue, isSubmitting }) => (
                                     <Form className="space-y-4">
+                                         <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1"> Employee ID  <span className="text-red-500">*</span></label>
+                                        
+                                            <Field type="text" name="emp_id" className="w-full p-2 border rounded-lg" />
+                                            <ErrorMessage name="emp_id" component="div" className="text-red-500 text-sm mt-1" />
+                                        </div>
+
                                         {/* First Name */}
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">First Name  <span className="text-red-500">*</span></label>
@@ -420,6 +450,25 @@ function EmpEdit() {
                                           
                                             <Field type="email" name="email" className="w-full p-2 border rounded-lg" />
                                             <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Work Location <span className="text-red-500">*</span>
+                                            </label>
+                                            <Field
+                                                as="select"
+                                                name="work_location"
+                                                className="w-full p-2 border rounded-lg"
+                                                onChange={(e) => setFieldValue("work_location", e.target.value)}
+                                            >
+                                                <option value="" disabled>Select Work Location</option>
+                                          
+                                                        <option key={"in-office"} value={"in-office"}>Onsite</option>
+                                                        <option key={"remote"} value={"remote"}>Remote</option>
+                                                
+                                                
+                                            </Field>
+                                            <ErrorMessage name="work_location" component="div" className="text-red-500 text-sm mt-1" />
                                         </div>
 
                                         {/* Image Upload */}

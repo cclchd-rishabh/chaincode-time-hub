@@ -10,7 +10,7 @@ import DateRangeSelector from "./DateRangeSelector";
 
 function ManageEmp() {
 
-    
+
     // Get date from URL param if available, otherwise use current date
     const getInitialDate = () => {
         if (typeof window !== 'undefined') {
@@ -40,16 +40,6 @@ function ManageEmp() {
     const [showClockOutModal, setShowClockOutModal] = useState(false);
     const [selectedEmp, setSelectedEmp] = useState(null);
 
-    
-
-  // Add this new export function specifically for date range
- 
-  // Component for date range selection
-
-
-
-
-    // -----------------------------777565-65-6-5-656
 
 
 
@@ -60,7 +50,8 @@ function ManageEmp() {
             (emp.first_name + " " + emp.last_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
             emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
             emp.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            emp.role?.toLowerCase().includes(searchQuery.toLowerCase())
+            emp.role?.toLowerCase().includes(searchQuery.toLowerCase())||
+            emp.emp_id?.toLowerCase().includes(searchQuery.toLowerCase())
         );
 
         // Then apply status filter
@@ -77,8 +68,14 @@ function ManageEmp() {
             case 'finished':
                 filtered = filtered.filter(emp => emp.attendance_status === 'day-over' || !!emp.clock_out);
                 break;
+            case 'remote':
+                filtered = filtered.filter(emp => emp.work_location === 'remote' );
+                break ;
+            case 'office':
+                filtered = filtered.filter(emp => emp.work_location === 'in-office');
+                break;
             default:
-                //*
+                
                 break;
         }
 
@@ -100,7 +97,7 @@ function ManageEmp() {
             setLoading(false);
         }
     };
- 
+
 
     // Update URL when date changes
     const updateUrlWithDate = (date) => {
@@ -178,7 +175,7 @@ function ManageEmp() {
     const indexOfFirstEmployee = indexOfLastEmployee - entriesPerPage;
     const currentEmployees = filteredEmployees.slice(indexOfFirstEmployee, indexOfLastEmployee);
 
-    // Handle pagination
+    // pagination
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
     const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
     const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
@@ -313,6 +310,8 @@ function ManageEmp() {
                                 onChange={(e) => setFilterType(e.target.value)}
                             >
                                 <option value="all">All Employees</option>
+                                <option value="remote">Remote Employees</option>
+                                <option value="office">Onsite Employees</option>
                                 <option value="not_clocked_in">Not Clocked In</option>
                                 <option value="on_break">On Break</option>
                                 <option value="active">Active</option>
@@ -335,46 +334,18 @@ function ManageEmp() {
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
-                        <div className="export-controls">
-  {/* Your existing export controls */}
-  {/* <div className="existing-export">
-    <select value={exportType} onChange={(e) => setExportType(e.target.value)}>
-      <option value="today">Today</option>
-      <option value="last7days">Last 7 Days</option>
-    </select>
-    <button onClick={handleExport} disabled={loading}>
-      {loading ? "Exporting..." : "Export"}
-    </button>
-  </div> */}
-  
-  {/* New date range selector */}
-  <DateRangeSelector />
-</div>
-                            {/* <div className="flex flex-wrap items-center gap-3 mt-3 sm:mt-0">
-                                <select
-                                    className="border border-blue-600 text-blue-600 rounded-md p-2 focus:outline-none hover:bg-blue-50 transition-all"
-                                    onChange={(e) => setExportType(e.target.value)}
-                                    value={exportType}
-                                >
-                                    <option value="today">Today's Data</option>
-                                    <option value="last7days">Last 7 Days</option>
-                                </select>
-                                <Button
-                                    variant="outline"
-                                    className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition-all"
-                                    onClick={() => handleExport()}
-                                >
-                                    <Download size={16} />
-                                    Export
-                                </Button>
-                            </div> */}
+                            <div className="export-controls">
+
+                                <DateRangeSelector />
+                            </div>
+
                         </div>
 
 
                     </div>
                 </div>
 
-                {/* Filters and controls */}
+             
 
 
                 {/* Data Table */}
@@ -385,6 +356,9 @@ function ManageEmp() {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead>
                                 <tr className="bg-gray-50 sticky top-0">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Employee ID
+                                    </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Name
                                     </th>
@@ -419,6 +393,9 @@ function ManageEmp() {
                             <tbody className="bg-white divide-y divide-gray-200 ">
                                 {currentEmployees.map((emp) => (
                                     <tr key={emp.employee_id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {emp.emp_id}
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 {emp.avatar ? (
@@ -541,16 +518,16 @@ function ManageEmp() {
                                                             </svg>
                                                             <p className="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to clock in for:</p>
                                                             {selectedEmp.avatar ? (
-                                                    <img
-                                                        src={`http://localhost:4000${selectedEmp.avatar}`}
-                                                        alt={`${selectedEmp.first_name} ${selectedEmp.last_name}`}
-                                                        className="w-40 h-40 rounded-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="w-40 h-40 rounded-full flex items-center justify-center text-white bg-blue-600">
-                                                        {getInitials(selectedEmp.first_name, selectedEmp.last_name)}
-                                                    </div>
-                                                )}
+                                                                <img
+                                                                    src={`http://localhost:4000${selectedEmp.avatar}`}
+                                                                    alt={`${selectedEmp.first_name} ${selectedEmp.last_name}`}
+                                                                    className="w-40 h-40 rounded-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-40 h-40 rounded-full flex items-center justify-center text-white bg-blue-600">
+                                                                    {getInitials(selectedEmp.first_name, selectedEmp.last_name)}
+                                                                </div>
+                                                            )}
                                                             <p className="font-semibold text-lg text-gray-800 dark:text-white">{selectedEmp.first_name}</p>
                                                             <p className="text-gray-500 dark:text-gray-400">{selectedEmp.email}</p>
                                                         </div>
@@ -594,16 +571,16 @@ function ManageEmp() {
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                             </svg>
                                                             {selectedEmp.avatar ? (
-                                                    <img
-                                                        src={`http://localhost:4000${selectedEmp.avatar}`}
-                                                        alt={`${selectedEmp.first_name} ${selectedEmp.last_name}`}
-                                                        className="w-40 h-40 rounded-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="w-40 h-40 rounded-full flex items-center justify-center text-white bg-blue-600">
-                                                        {getInitials(selectedEmp.first_name, selectedEmp.last_name)}
-                                                    </div>
-                                                )}
+                                                                <img
+                                                                    src={`http://localhost:4000${selectedEmp.avatar}`}
+                                                                    alt={`${selectedEmp.first_name} ${selectedEmp.last_name}`}
+                                                                    className="w-40 h-40 rounded-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-40 h-40 rounded-full flex items-center justify-center text-white bg-blue-600">
+                                                                    {getInitials(selectedEmp.first_name, selectedEmp.last_name)}
+                                                                </div>
+                                                            )}
                                                             <p className="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to clock out for:</p>
                                                             <p className="font-semibold text-lg text-gray-800 dark:text-white">{selectedEmp.first_name}</p>
                                                             <p className="text-gray-500 dark:text-gray-400">{selectedEmp.email}</p>
