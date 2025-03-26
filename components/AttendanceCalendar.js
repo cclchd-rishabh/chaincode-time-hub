@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { getDatewiseAttendance } from "/pages/api/fetch";
+import { getDatewiseAttendance } from "/lib/api/attendance";
 
 export default function AttendanceCalendar() {
   const [selectedDate, setSelectedDate] = useState(new Date());

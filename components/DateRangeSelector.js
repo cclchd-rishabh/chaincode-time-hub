@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DateRangeAttendance } from '/pages/api/fetch';
+import { DateRangeAttendance } from '/lib/api/attendance';
 import ExcelJS from 'exceljs';
 import { FaCalendar, FaChevronDown, FaTimes, FaDownload, FaSpinner } from 'react-icons/fa';
 import { saveAs } from 'file-saver'; // Import saveAs function

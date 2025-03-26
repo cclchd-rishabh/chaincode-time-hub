@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Search, ArrowLeft, ArrowRight, Clock, Coffee, LogOut, ChevronDown } from "lucide-react";
-import { empClockedIn, empClockedOut, empBreakStart, empBreakEnd, getDatewiseAttendance } from "/pages/api/fetch";
+import { empClockedIn, empClockedOut, empBreakStart, empBreakEnd } from "/lib/api/employee";
+import { getDatewiseAttendance } from "/lib/api/attendance";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import DateRangeSelector from "./DateRangeSelector";

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Search, Edit, Trash2, Plus, X, ChevronDown } from "lucide-react";
-import { editEmployees, createEmployee, deleteEmployee, getAllEmployees } from "@/pages/api/fetch";
+import { editEmployees, createEmployee, deleteEmployee, getAllEmployees } from "/lib/api/employee";
 import { Button } from "@/components/ui/button";
 
 const roleOptions = {

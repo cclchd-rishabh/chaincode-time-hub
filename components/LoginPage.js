@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import {loginUser} from '/pages/api/auth';
+import {loginUser} from '/lib/api/auth';
 import {useRouter} from 'next/router'
 import { useDispatch } from "react-redux";
 import { login } from "../store/slices/AuthSlice";
@@ -24,8 +24,6 @@ export default function LoginPage() {
             [name]: type === 'checkbox' ? checked : value
         });
     };
-
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
