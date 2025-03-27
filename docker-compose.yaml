@@ -1,0 +1,9 @@
+version: '3'
+services:
+  timehub-frontend:
+    container_name: chaincode-timehub-frontend
+    restart: always
+    build:
+      context: . # The path to your Next.js app's Dockerfile
+    ports:
+      - "4008:3000" # Map the app's port to the host machine
