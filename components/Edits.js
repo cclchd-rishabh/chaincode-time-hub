@@ -275,7 +275,7 @@ function EmpEdit() {
                                             <div className="flex items-center">
                                                 {emp.avatar ? (
                                                     <img
-                                                        src={`http://localhost:4000${emp.avatar}`}
+                                                        src={`https://timehub-api.chaincodeconsulting.com${emp.avatar}`}
                                                         alt={`${emp.first_name} ${emp.last_name}`}
                                                         className="w-10 h-10 rounded-full object-cover"
                                                     />

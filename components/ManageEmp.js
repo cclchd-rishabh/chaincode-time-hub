@@ -401,7 +401,7 @@ function ManageEmp() {
                                             <div className="flex items-center">
                                                 {emp.avatar ? (
                                                     <img
-                                                        src={`http://localhost:4000${emp.avatar}`}
+                                                        src={`https://timehub-api.chaincodeconsulting.com${emp.avatar}`}
                                                         alt={`${emp.first_name} ${emp.last_name}`}
                                                         className="w-10 h-10 rounded-full object-cover"
                                                     />
@@ -520,7 +520,7 @@ function ManageEmp() {
                                                             <p className="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to clock in for:</p>
                                                             {selectedEmp.avatar ? (
                                                                 <img
-                                                                    src={`http://localhost:4000${selectedEmp.avatar}`}
+                                                                    src={`https://timehub-api.chaincodeconsulting.com${selectedEmp.avatar}`}
                                                                     alt={`${selectedEmp.first_name} ${selectedEmp.last_name}`}
                                                                     className="w-40 h-40 rounded-full object-cover"
                                                                 />
@@ -573,7 +573,7 @@ function ManageEmp() {
                                                             </svg>
                                                             {selectedEmp.avatar ? (
                                                                 <img
-                                                                    src={`http://localhost:4000${selectedEmp.avatar}`}
+                                                                    src={`https://timehub-api.chaincodeconsulting.com${selectedEmp.avatar}`}
                                                                     alt={`${selectedEmp.first_name} ${selectedEmp.last_name}`}
                                                                     className="w-40 h-40 rounded-full object-cover"
                                                                 />
