@@ -51,7 +51,7 @@ function ManageEmp() {
             (emp.first_name + " " + emp.last_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
             emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
             emp.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            emp.role?.toLowerCase().includes(searchQuery.toLowerCase())||
+            emp.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             emp.emp_id?.toLowerCase().includes(searchQuery.toLowerCase())
         );
 
@@ -70,13 +70,13 @@ function ManageEmp() {
                 filtered = filtered.filter(emp => emp.attendance_status === 'day-over' || !!emp.clock_out);
                 break;
             case 'remote':
-                filtered = filtered.filter(emp => emp.work_location === 'remote' );
-                break ;
+                filtered = filtered.filter(emp => emp.work_location === 'remote');
+                break;
             case 'office':
                 filtered = filtered.filter(emp => emp.work_location === 'in-office');
                 break;
             default:
-                
+
                 break;
         }
 
@@ -346,7 +346,7 @@ function ManageEmp() {
                     </div>
                 </div>
 
-             
+
 
 
                 {/* Data Table */}
@@ -377,237 +377,243 @@ function ManageEmp() {
                                     </th>
                                 </tr>
                             </thead>
+                            <div className="flex flex-col overflow-x-auto overflow-y-auto min-h-[70vh] max-h-[70vh] relative">
                             {loading && (
-                                <div className="mt-4 flex items-center text-blue-600">
-                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Loading attendance data...
-                                </div>
-                            )}
-                            {error && (
-                                <div className="mt-4 text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
-                                    {error}
-                                </div>
-                            )}
-                            <tbody className="bg-white divide-y divide-gray-200 ">
-                                {currentEmployees.map((emp) => (
-                                    <tr key={emp.employee_id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {emp.emp_id}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                {emp.avatar ? (
-                                                    <img
-                                                        src={`https://timehub-api.chaincodeconsulting.com${emp.avatar}`}
-                                                        alt={`${emp.first_name} ${emp.last_name}`}
-                                                        className="w-10 h-10 rounded-full object-cover"
-                                                    />
+                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+                            <div className="flex flex-col items-center">
+                                <svg className="animate-spin -ml-1 mr-3 h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <p className="mt-4 text-blue-600 font-medium">Loading attendance data...</p>
+                            </div>
+                        </div>
+                    )}
+                                  {error && (
+                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-red-50">
+                            <div className="text-red-600 bg-red-50 p-6 rounded-md border border-red-200 text-center">
+                                {error}
+                            </div>
+                        </div>
+                    )}
+                                <tbody className="bg-white divide-y divide-gray-200 ">
+                                    {currentEmployees.map((emp) => (
+                                        <tr key={emp.employee_id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {emp.emp_id}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    {emp.avatar ? (
+                                                        <img
+                                                            src={`https://timehub-api.chaincodeconsulting.com${emp.avatar}`}
+                                                            alt={`${emp.first_name} ${emp.last_name}`}
+                                                            className="w-10 h-10 rounded-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-blue-600">
+                                                            {getInitials(emp.first_name, emp.last_name)}
+                                                        </div>
+                                                    )}
+                                                    <div className="ml-4">
+                                                        <div className="text-sm font-medium text-gray-900">{emp.first_name} {emp.last_name}</div>
+                                                        <div className="text-sm text-gray-500">{emp.role} {emp.department ? `- ${emp.department}` : ''}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {emp.email}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-500">
+                                                {emp.clock_out ? (
+                                                    <div className="flex items-center space-x-3">
+                                                        <div className="flex flex-col items-center">
+                                                            <span className="text-xs font-medium text-gray-700 mb-1">Active Hours</span>
+                                                            <span className="bg-green-100 text-green-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
+                                                                {formatStopwatchTime(emp.total_work_time)}
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="flex flex-col items-center">
+                                                            <span className="text-xs font-medium text-gray-700 mb-1">Idle Hours</span>
+                                                            <span className="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
+                                                                {formatStopwatchTime(emp.total_break_time)}
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="flex flex-col items-center">
+                                                            <span className="text-xs font-medium text-gray-700 mb-1">Total Hours</span>
+                                                            <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
+                                                                {formatStopwatchTime(emp.total_time)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 ) : (
-                                                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-blue-600">
-                                                        {getInitials(emp.first_name, emp.last_name)}
+                                                    <div className="flex items-center space-x-2">
+                                                        <div className={`flex-shrink-0 w-2 h-2 rounded-full ${emp.clock_in ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></div>
+                                                        <span className="text-sm">
+                                                            {emp.clock_in ? `Clocked in at  ${formatTimeWithAMPM(emp.clock_in)} ` : "Not clocked in"}
+                                                        </span>
                                                     </div>
                                                 )}
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900">{emp.first_name} {emp.last_name}</div>
-                                                    <div className="text-sm text-gray-500">{emp.role} {emp.department ? `- ${emp.department}` : ''}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {emp.email}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">
-                                            {emp.clock_out ? (
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-xs font-medium text-gray-700 mb-1">Active Hours</span>
-                                                        <span className="bg-green-100 text-green-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
-                                                            {formatStopwatchTime(emp.total_work_time)}
-                                                        </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(emp.attendance_status)}`}>
+                                                    {emp.attendance_status === "active" ? "Active" :
+                                                        emp.attendance_status === "inactive" ? "On Break" :
+                                                            emp.attendance_status === "not-present" ? "Inactive" :
+                                                                emp.attendance_status === "day-over" ? "Finished" :
+                                                                    emp.attendance_status || "Unknown"}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                {!emp.clock_out ? (
+                                                    <div className="flex space-x-2">
+                                                        <Button
+                                                            size="sm"
+                                                            className={`flex items-center gap-1 ${!!emp.clock_in ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600'}`}
+                                                            onClick={() => handleClockIn(emp)}
+                                                            disabled={!!emp.clock_in}
+                                                        >
+                                                            <Clock size={14} />
+                                                            Clock In
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            className={`flex items-center gap-1 ${!emp.clock_in || !!emp.clock_out ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-yellow-500 text-white hover:bg-yellow-600'}`}
+                                                            onClick={() => handleBreak(emp.employee_id)}
+                                                            disabled={!emp.clock_in || !!emp.clock_out}
+                                                        >
+                                                            <Coffee size={14} />
+                                                            {emp.attendance_status === "active" ? "Break" : "Resume"}
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            className={`flex items-center gap-1 ${!emp.clock_in || !!emp.clock_out ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-red-500 text-white hover:bg-red-600'}`}
+                                                            onClick={() => handleClockOut(emp)}
+                                                            disabled={!emp.clock_in || !!emp.clock_out}
+                                                        >
+                                                            <LogOut size={14} />
+                                                            Clock Out
+                                                        </Button>
                                                     </div>
+                                                ) : (
+                                                    <div className="text-sm text-gray-500 italic">
+                                                        Day completed
+                                                    </div>
+                                                )}
+                                                {/* Clock In Modal */}
+                                                {showClockInModal && (
+                                                    <div className="fixed inset-0 backdrop-blur-md bg-gray-900/60 flex items-center justify-center z-50">
+                                                        <div className="bg-white/90 dark:bg-gray-800/90 p-6 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700">
+                                                            <div className="flex justify-between items-center mb-4">
+                                                                <h2 className="text-xl font-bold text-gray-800 dark:text-white">Confirm Clock In</h2>
+                                                                <button
+                                                                    onClick={() => setShowClockInModal(false)}
+                                                                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                                >
+                                                                    <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
 
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-xs font-medium text-gray-700 mb-1">Idle Hours</span>
-                                                        <span className="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
-                                                            {formatStopwatchTime(emp.total_break_time)}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-xs font-medium text-gray-700 mb-1">Total Hours</span>
-                                                        <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-md text-xs whitespace-nowrap">
-                                                            {formatStopwatchTime(emp.total_time)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center space-x-2">
-                                                    <div className={`flex-shrink-0 w-2 h-2 rounded-full ${emp.clock_in ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></div>
-                                                    <span className="text-sm">
-                                                        {emp.clock_in ? `Clocked in at  ${formatTimeWithAMPM(emp.clock_in)} ` : "Not clocked in"}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(emp.attendance_status)}`}>
-                                                {emp.attendance_status === "active" ? "Active" :
-                                                    emp.attendance_status === "inactive" ? "On Break" :
-                                                        emp.attendance_status === "not-present" ? "Inactive" :
-                                                            emp.attendance_status === "day-over" ? "Finished" :
-                                                                emp.attendance_status || "Unknown"}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {!emp.clock_out ? (
-                                                <div className="flex space-x-2">
-                                                    <Button
-                                                        size="sm"
-                                                        className={`flex items-center gap-1 ${!!emp.clock_in ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600'}`}
-                                                        onClick={() => handleClockIn(emp)}
-                                                        disabled={!!emp.clock_in}
-                                                    >
-                                                        <Clock size={14} />
-                                                        Clock In
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        className={`flex items-center gap-1 ${!emp.clock_in || !!emp.clock_out ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-yellow-500 text-white hover:bg-yellow-600'}`}
-                                                        onClick={() => handleBreak(emp.employee_id)}
-                                                        disabled={!emp.clock_in || !!emp.clock_out}
-                                                    >
-                                                        <Coffee size={14} />
-                                                        {emp.attendance_status === "active" ? "Break" : "Resume"}
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        className={`flex items-center gap-1 ${!emp.clock_in || !!emp.clock_out ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-red-500 text-white hover:bg-red-600'}`}
-                                                        onClick={() => handleClockOut(emp)}
-                                                        disabled={!emp.clock_in || !!emp.clock_out}
-                                                    >
-                                                        <LogOut size={14} />
-                                                        Clock Out
-                                                    </Button>
-                                                </div>
-                                            ) : (
-                                                <div className="text-sm text-gray-500 italic">
-                                                    Day completed
-                                                </div>
-                                            )}
-                                            {/* Clock In Modal */}
-                                            {showClockInModal && (
-                                                <div className="fixed inset-0 backdrop-blur-md bg-gray-900/60 flex items-center justify-center z-50">
-                                                    <div className="bg-white/90 dark:bg-gray-800/90 p-6 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700">
-                                                        <div className="flex justify-between items-center mb-4">
-                                                            <h2 className="text-xl font-bold text-gray-800 dark:text-white">Confirm Clock In</h2>
-                                                            <button
-                                                                onClick={() => setShowClockInModal(false)}
-                                                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                            >
-                                                                <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                            <div className="text-center mb-6 flex  flex-col items-center">
+                                                                <svg className="mx-auto mb-4 text-blue-500 w-12 h-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                 </svg>
-                                                            </button>
-                                                        </div>
+                                                                <p className="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to clock in for:</p>
+                                                                {selectedEmp.avatar ? (
+                                                                    <img
+                                                                        src={`https://timehub-api.chaincodeconsulting.com${selectedEmp.avatar}`}
+                                                                        alt={`${selectedEmp.first_name} ${selectedEmp.last_name}`}
+                                                                        className="w-40 h-40 rounded-full object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-40 h-40 rounded-full flex items-center justify-center text-white bg-blue-600">
+                                                                        {getInitials(selectedEmp.first_name, selectedEmp.last_name)}
+                                                                    </div>
+                                                                )}
+                                                                <p className="font-semibold text-lg text-gray-800 dark:text-white">{selectedEmp.first_name}</p>
+                                                                <p className="text-gray-500 dark:text-gray-400">{selectedEmp.email}</p>
+                                                            </div>
 
-                                                        <div className="text-center mb-6 flex  flex-col items-center">
-                                                            <svg className="mx-auto mb-4 text-blue-500 w-12 h-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                            </svg>
-                                                            <p className="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to clock in for:</p>
-                                                            {selectedEmp.avatar ? (
-                                                                <img
-                                                                    src={`https://timehub-api.chaincodeconsulting.com${selectedEmp.avatar}`}
-                                                                    alt={`${selectedEmp.first_name} ${selectedEmp.last_name}`}
-                                                                    className="w-40 h-40 rounded-full object-cover"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-40 h-40 rounded-full flex items-center justify-center text-white bg-blue-600">
-                                                                    {getInitials(selectedEmp.first_name, selectedEmp.last_name)}
-                                                                </div>
-                                                            )}
-                                                            <p className="font-semibold text-lg text-gray-800 dark:text-white">{selectedEmp.first_name}</p>
-                                                            <p className="text-gray-500 dark:text-gray-400">{selectedEmp.email}</p>
-                                                        </div>
-
-                                                        <div className="flex justify-center space-x-3 mt-6">
-                                                            <button
-                                                                onClick={() => setShowClockInModal(false)}
-                                                                className="px-4 py-2.5 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 focus:ring-4 focus:ring-gray-300 transition-colors"
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                            <button
-                                                                onClick={() => confirmClockIn(selectedEmp.employee_id)}
-                                                                className="px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors"
-                                                            >
-                                                                Confirm
-                                                            </button>
+                                                            <div className="flex justify-center space-x-3 mt-6">
+                                                                <button
+                                                                    onClick={() => setShowClockInModal(false)}
+                                                                    className="px-4 py-2.5 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 focus:ring-4 focus:ring-gray-300 transition-colors"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => confirmClockIn(selectedEmp.employee_id)}
+                                                                    className="px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors"
+                                                                >
+                                                                    Confirm
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            )}
+                                                )}
 
-                                            {/* Clock Out Modal */}
-                                            {showClockOutModal && (
-                                                <div className="fixed inset-0 backdrop-blur-md bg-gray-900/60 flex items-center justify-center z-50">
-                                                    <div className="bg-white/90 dark:bg-gray-800/90 p-6 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700">
-                                                        <div className="flex justify-between items-center mb-4">
-                                                            <h2 className="text-xl font-bold text-gray-800 dark:text-white">Confirm Clock Out</h2>
-                                                            <button
-                                                                onClick={() => setShowClockOutModal(false)}
-                                                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                            >
-                                                                <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                {/* Clock Out Modal */}
+                                                {showClockOutModal && (
+                                                    <div className="fixed inset-0 backdrop-blur-md bg-gray-900/60 flex items-center justify-center z-50">
+                                                        <div className="bg-white/90 dark:bg-gray-800/90 p-6 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700">
+                                                            <div className="flex justify-between items-center mb-4">
+                                                                <h2 className="text-xl font-bold text-gray-800 dark:text-white">Confirm Clock Out</h2>
+                                                                <button
+                                                                    onClick={() => setShowClockOutModal(false)}
+                                                                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                                >
+                                                                    <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+
+                                                            <div className="text-center mb-6 flex  flex-col items-center">
+                                                                <svg className="mx-auto mb-4 text-red-500 w-12 h-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                 </svg>
-                                                            </button>
-                                                        </div>
+                                                                {selectedEmp.avatar ? (
+                                                                    <img
+                                                                        src={`https://timehub-api.chaincodeconsulting.com${selectedEmp.avatar}`}
+                                                                        alt={`${selectedEmp.first_name} ${selectedEmp.last_name}`}
+                                                                        className="w-40 h-40 rounded-full object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-40 h-40 rounded-full flex items-center justify-center text-white bg-blue-600">
+                                                                        {getInitials(selectedEmp.first_name, selectedEmp.last_name)}
+                                                                    </div>
+                                                                )}
+                                                                <p className="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to clock out for:</p>
+                                                                <p className="font-semibold text-lg text-gray-800 dark:text-white">{selectedEmp.first_name}</p>
+                                                                <p className="text-gray-500 dark:text-gray-400">{selectedEmp.email}</p>
+                                                            </div>
 
-                                                        <div className="text-center mb-6 flex  flex-col items-center">
-                                                            <svg className="mx-auto mb-4 text-red-500 w-12 h-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                            </svg>
-                                                            {selectedEmp.avatar ? (
-                                                                <img
-                                                                    src={`https://timehub-api.chaincodeconsulting.com${selectedEmp.avatar}`}
-                                                                    alt={`${selectedEmp.first_name} ${selectedEmp.last_name}`}
-                                                                    className="w-40 h-40 rounded-full object-cover"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-40 h-40 rounded-full flex items-center justify-center text-white bg-blue-600">
-                                                                    {getInitials(selectedEmp.first_name, selectedEmp.last_name)}
-                                                                </div>
-                                                            )}
-                                                            <p className="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to clock out for:</p>
-                                                            <p className="font-semibold text-lg text-gray-800 dark:text-white">{selectedEmp.first_name}</p>
-                                                            <p className="text-gray-500 dark:text-gray-400">{selectedEmp.email}</p>
-                                                        </div>
-
-                                                        <div className="flex justify-center space-x-3 mt-6">
-                                                            <button
-                                                                onClick={() => setShowClockOutModal(false)}
-                                                                className="px-4 py-2.5 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 focus:ring-4 focus:ring-gray-300 transition-colors"
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                            <button
-                                                                onClick={() => confirmClockOut(selectedEmp.employee_id)}
-                                                                className="px-4 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 focus:ring-4 focus:ring-red-300 transition-colors"
-                                                            >
-                                                                Confirm
-                                                            </button>
+                                                            <div className="flex justify-center space-x-3 mt-6">
+                                                                <button
+                                                                    onClick={() => setShowClockOutModal(false)}
+                                                                    className="px-4 py-2.5 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 focus:ring-4 focus:ring-gray-300 transition-colors"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => confirmClockOut(selectedEmp.employee_id)}
+                                                                    className="px-4 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 focus:ring-4 focus:ring-red-300 transition-colors"
+                                                                >
+                                                                    Confirm
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </div>
                         </table>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-12">
@@ -622,74 +628,75 @@ function ManageEmp() {
                         </div>
                     )}
                 </div>
+            
 
-                {/* Pagination */}
-                {filteredEmployees.length > 0 && (
-                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center">
-                        <div className="flex items-center mb-4 sm:mb-0">
-                            <span className="text-black mr-2">Show</span>
-                            <div className="relative">
-                                <select
-                                    className="appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none"
-                                    value={entriesPerPage}
-                                    onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-                                >
-                                    <option value={5}>5</option>
-                                    <option value={10}>10</option>
-                                    <option value={15}>15</option>
-                                </select>
-                                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                    <ChevronDown size={16} />
-                                </div>
-                            </div>
-                            <span className="text-black ml-2">entries</span>
-                        </div>
-                        <div className="text-sm text-gray-700 mb-4 sm:mb-0">
-                            Showing <span className="font-medium">{indexOfFirstEmployee + 1}</span> to <span className="font-medium">{Math.min(indexOfLastEmployee, filteredEmployees.length)}</span> of <span className="font-medium">{filteredEmployees.length}</span> entries
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className={`flex items-center gap-1 ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
-                                onClick={goToPrevPage}
-                                disabled={currentPage === 1}
+            {/* Pagination */}
+            {filteredEmployees.length > 0 && (
+                <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center">
+                    <div className="flex items-center mb-4 sm:mb-0">
+                        <span className="text-black mr-2">Show</span>
+                        <div className="relative">
+                            <select
+                                className="appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 focus:outline-none"
+                                value={entriesPerPage}
+                                onChange={(e) => setEntriesPerPage(Number(e.target.value))}
                             >
-                                <ArrowLeft size={14} />
-                                Previous
-                            </Button>
-
-                            <div className="flex items-center space-x-1">
-                                {pageNumbers.map(number => (
-                                    <Button
-                                        key={number}
-                                        variant={currentPage === number ? "default" : "outline"}
-                                        size="sm"
-                                        className={`min-w-[2.5rem] px-3 py-1 ${currentPage === number ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
-                                        onClick={() => paginate(number)}
-                                    >
-                                        {number}
-                                    </Button>
-                                ))}
+                                <option value={5}>5</option>
+                                <option value={10}>10</option>
+                                <option value={15}>15</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                <ChevronDown size={16} />
                             </div>
-
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className={`flex items-center gap-1 ${currentPage === totalPages || totalPages === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
-                                onClick={goToNextPage}
-                                disabled={currentPage === totalPages || totalPages === 0}
-                            >
-                                Next
-                                <ArrowRight size={14} />
-                            </Button>
                         </div>
+                        <span className="text-black ml-2">entries</span>
                     </div>
-                )}
-            </div>
+                    <div className="text-sm text-gray-700 mb-4 sm:mb-0">
+                        Showing <span className="font-medium">{indexOfFirstEmployee + 1}</span> to <span className="font-medium">{Math.min(indexOfLastEmployee, filteredEmployees.length)}</span> of <span className="font-medium">{filteredEmployees.length}</span> entries
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className={`flex items-center gap-1 ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+                            onClick={goToPrevPage}
+                            disabled={currentPage === 1}
+                        >
+                            <ArrowLeft size={14} />
+                            Previous
+                        </Button>
 
+                        <div className="flex items-center space-x-1">
+                            {pageNumbers.map(number => (
+                                <Button
+                                    key={number}
+                                    variant={currentPage === number ? "default" : "outline"}
+                                    size="sm"
+                                    className={`min-w-[2.5rem] px-3 py-1 ${currentPage === number ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                                    onClick={() => paginate(number)}
+                                >
+                                    {number}
+                                </Button>
+                            ))}
+                        </div>
 
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className={`flex items-center gap-1 ${currentPage === totalPages || totalPages === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+                            onClick={goToNextPage}
+                            disabled={currentPage === totalPages || totalPages === 0}
+                        >
+                            Next
+                            <ArrowRight size={14} />
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
+
+
+        </div >
     );
 }
 
