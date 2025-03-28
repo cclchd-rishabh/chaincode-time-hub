@@ -377,7 +377,7 @@ function ManageEmp() {
                                     </th>
                                 </tr>
                             </thead>
-                            <div className="flex flex-col overflow-x-auto overflow-y-auto min-h-[70vh] max-h-[70vh] relative">
+                           
                             {loading && (
                         <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
                             <div className="flex flex-col items-center">
@@ -613,7 +613,7 @@ function ManageEmp() {
                                         </tr>
                                     ))}
                                 </tbody>
-                            </div>
+                     
                         </table>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-12">

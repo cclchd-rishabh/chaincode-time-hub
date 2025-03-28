@@ -408,154 +408,189 @@ function EmpEdit() {
                                 {editEmployee ? "Edit Employee" : "Add New Employee"}
                             </h3>
                             <Formik
-                                initialValues={{
-                                    emp_id :editEmployee?.emp_id || "",
-                                    first_name: editEmployee?.first_name || "",
-                                    last_name: editEmployee?.last_name || "",
-                                    email: editEmployee?.email || "",
-                                    department: editEmployee?.department || "",
-                                    role: editEmployee?.role || "",
-                                    work_location: editEmployee?.work_location || "",
-                                    avatar: null,  // Updated to handle file
-                                }}
-                                validationSchema={validationSchema}
-                              onSubmit={handleSubmit}
-                                enableReinitialize
-                            >
-                                {({ setFieldValue, isSubmitting }) => (
-                                    <Form className="space-y-4">
-                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1"> Employee ID  <span className="text-red-500">*</span></label>
-                                        
-                                            <Field type="text" name="emp_id" className="w-full p-2 border rounded-lg" />
-                                            <ErrorMessage name="emp_id" component="div" className="text-red-500 text-sm mt-1" />
-                                        </div>
+    initialValues={{
+        emp_id: editEmployee?.emp_id || "",
+        first_name: editEmployee?.first_name || "",
+        last_name: editEmployee?.last_name || "",
+        email: editEmployee?.email || "",
+        department: editEmployee?.department || "",
+        role: editEmployee?.role || "",
+        work_location: editEmployee?.work_location || "",
+        avatar: null,
+    }}
+    validationSchema={validationSchema}
+    onSubmit={handleSubmit}
+    enableReinitialize
+>
+    {({ setFieldValue, isSubmitting }) => (
+        <div className="fixed inset-0 backdrop-blur-md bg-gray-900/60 flex items-center justify-center z-50">
+            <Form className="bg-white/90 dark:bg-gray-800/90 p-6 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700 space-y-4">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                        {editEmployee ? "Edit Employee" : "Create Employee"}
+                    </h2>
+                    <button
+                        type="button"
+                        onClick={() => setShowModal(false)}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                        <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
 
-                                        {/* First Name */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">First Name  <span className="text-red-500">*</span></label>
-                                        
-                                            <Field type="text" name="first_name" className="w-full p-2 border rounded-lg" />
-                                            <ErrorMessage name="first_name" component="div" className="text-red-500 text-sm mt-1" />
-                                        </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Employee ID <span className="text-red-500">*</span>
+                    </label>
+                    <Field 
+                        type="text" 
+                        name="emp_id" 
+                        className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600" 
+                    />
+                    <ErrorMessage name="emp_id" component="div" className="text-red-500 text-sm mt-1" />
+                </div>
 
-                                        {/* Last Name */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name  </label>
-                                          
-                                            <Field type="text" name="last_name" className="w-full p-2 border rounded-lg" />
-                                            <ErrorMessage name="last_name" component="div" className="text-red-500 text-sm mt-1" />
-                                        </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            First Name <span className="text-red-500">*</span>
+                        </label>
+                        <Field 
+                            type="text" 
+                            name="first_name" 
+                            className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600" 
+                        />
+                        <ErrorMessage name="first_name" component="div" className="text-red-500 text-sm mt-1" />
+                    </div>
 
-                                        {/* Email */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Email  <span className="text-red-500">*</span></label>
-                                          
-                                            <Field type="email" name="email" className="w-full p-2 border rounded-lg" />
-                                            <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Work Location <span className="text-red-500">*</span>
-                                            </label>
-                                            <Field
-                                                as="select"
-                                                name="work_location"
-                                                className="w-full p-2 border rounded-lg"
-                                                onChange={(e) => setFieldValue("work_location", e.target.value)}
-                                            >
-                                                <option value="" disabled>Select Work Location</option>
-                                          
-                                                        <option key={"in-office"} value={"in-office"}>Onsite</option>
-                                                        <option key={"remote"} value={"remote"}>Remote</option>
-                                                
-                                                
-                                            </Field>
-                                            <ErrorMessage name="work_location" component="div" className="text-red-500 text-sm mt-1" />
-                                        </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Last Name
+                        </label>
+                        <Field 
+                            type="text" 
+                            name="last_name" 
+                            className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600" 
+                        />
+                        <ErrorMessage name="last_name" component="div" className="text-red-500 text-sm mt-1" />
+                    </div>
+                </div>
 
-                                        {/* Image Upload */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Upload Avatar</label>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="w-full p-2 border rounded-lg"
-                                                onChange={(event) => {
-                                                    const file = event.currentTarget.files[0];
-                                                    if (file && file.size <= 10 * 1024 * 1024) { // Max size 10MB
-                                                        setFieldValue("avatar", file);
-                                                    } else {
-                                                        alert("File size should be under 10MB");
-                                                    }
-                                                }}
-                                            />
-                                            <ErrorMessage name="avatar" component="div" className="text-red-500 text-sm mt-1" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Department <span className="text-red-500">*</span>
-                                            </label>
-                                            <Field
-                                                as="select"
-                                                name="department"
-                                                className="w-full p-2 border rounded-lg"
-                                                onChange={(e) => {
-                                                    const department = e.target.value;
-                                                    setFieldValue("department", department);
-                                                    setFieldValue("role", ""); // Reset role when department changes
-                                                    setSelectedDepartment(department);
-                                                }}
-                                            >
-                                                <option value="" disabled>Select Department</option>
-                                                {Object.keys(roleOptions).map((dept) => (
-                                                    <option key={dept} value={dept}>{dept}</option>
-                                                ))}
-                                            </Field>
-                                            <ErrorMessage name="department" component="div" className="text-red-500 text-sm mt-1" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Role <span className="text-red-500">*</span>
-                                            </label>
-                                            <Field
-                                                as="select"
-                                                name="role"
-                                                className="w-full p-2 border rounded-lg"
-                                                onChange={(e) => setFieldValue("role", e.target.value)}
-                                                disabled={!selectedDepartment}
-                                            >
-                                                <option value="" disabled>Select Role</option>
-                                                {selectedDepartment &&
-                                                    roleOptions[selectedDepartment]?.map((role) => (
-                                                        <option key={role} value={role}>{role}</option>
-                                                    ))
-                                                }
-                                            </Field>
-                                            <ErrorMessage name="role" component="div" className="text-red-500 text-sm mt-1" />
-                                        </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Email <span className="text-red-500">*</span>
+                    </label>
+                    <Field 
+                        type="email" 
+                        name="email" 
+                        className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600" 
+                    />
+                    <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
+                </div>
 
-                                        {/* Buttons */}
-                                        <div className="flex justify-end space-x-3 pt-4">
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowModal(false)}
-                                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                disabled={isSubmitting}
-                                                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md"
-                                            >
-                                                {isSubmitting ? "Saving..." : editEmployee ? "Update" : "Create"}
-                                            </button>
-                                        </div>
-                                    </Form>
-                                )}
-                            </Formik>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Work Location <span className="text-red-500">*</span>
+                    </label>
+                    <Field
+                        as="select"
+                        name="work_location"
+                        className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                        onChange={(e) => setFieldValue("work_location", e.target.value)}
+                    >
+                        <option value="" disabled>Select Work Location</option>
+                        <option value="in-office">Onsite</option>
+                        <option value="remote">Remote</option>
+                    </Field>
+                    <ErrorMessage name="work_location" component="div" className="text-red-500 text-sm mt-1" />
+                </div>
 
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Upload Avatar
+                    </label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                        onChange={(event) => {
+                            const file = event.currentTarget.files[0];
+                            if (file && file.size <= 10 * 1024 * 1024) {
+                                setFieldValue("avatar", file);
+                            } else {
+                                alert("File size should be under 10MB");
+                            }
+                        }}
+                    />
+                    <ErrorMessage name="avatar" component="div" className="text-red-500 text-sm mt-1" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Department <span className="text-red-500">*</span>
+                    </label>
+                    <Field
+                        as="select"
+                        name="department"
+                        className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                        onChange={(e) => {
+                            const department = e.target.value;
+                            setFieldValue("department", department);
+                            setFieldValue("role", "");
+                            setSelectedDepartment(department);
+                        }}
+                    >
+                        <option value="" disabled>Select Department</option>
+                        {Object.keys(roleOptions).map((dept) => (
+                            <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                    </Field>
+                    <ErrorMessage name="department" component="div" className="text-red-500 text-sm mt-1" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Role <span className="text-red-500">*</span>
+                    </label>
+                    <Field
+                        as="select"
+                        name="role"
+                        className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                        onChange={(e) => setFieldValue("role", e.target.value)}
+                        disabled={!selectedDepartment}
+                    >
+                        <option value="" disabled>Select Role</option>
+                        {selectedDepartment &&
+                            roleOptions[selectedDepartment]?.map((role) => (
+                                <option key={role} value={role}>{role}</option>
+                            ))
+                        }
+                    </Field>
+                    <ErrorMessage name="role" component="div" className="text-red-500 text-sm mt-1" />
+                </div>
+
+                <div className="flex justify-center space-x-3 mt-6">
+                    <button
+                        type="button"
+                        onClick={() => setShowModal(false)}
+                        className="px-4 py-2.5 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 focus:ring-4 focus:ring-gray-300 transition-colors dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors"
+                    >
+                        {isSubmitting ? "Saving..." : editEmployee ? "Update" : "Create"}
+                    </button>
+                </div>
+            </Form>
+        </div>
+    )}
+</Formik>
 
                         </div>
 
