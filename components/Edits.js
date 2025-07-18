@@ -6,28 +6,32 @@ import { editEmployees, createEmployee, deleteEmployee, getAllEmployees } from "
 import { Button } from "@/components/ui/button";
 
 const roleOptions = {
-
-    HR: [
-        "Manager - HR (Team ICE)", "Accounts Executive Cum HR", "Senior Executive - Inclusion & Culture", 
-        
+    "Supporting Staff":[
+        "Supporting Staff"
     ],
-    IT: [
-        "Team Lead (Full Stack)", "Sr. Full Stack Developer", "Jr. Full Stack Developer", 
-       , "Intern - Full Stack", 
-        "Team Lead - Blockchain", "Blockchain Architect", "Sr. Blockchain Developer", 
-        "Jr. Blockchain Developer", "Blockchain Developer (Tech Lead)", "Intern-Blockchain/AI",  
-        "DevOps Engineer" 
+    "HR and People Management": [
+        "Manager - (Team ICE)", , "Senior Executive - Inclusion & Culture", "Executive - Inclusion & Culture", "Intern"
     ],
-    Marketing: [
-        "Intern-Sales & Marketing"
+    "Business Growth": [
+        "Manager", "Senior Executive", "Executive",
+        , "Intern",
     ],
-    Operations: [
-        "Accounts Executive", "HR cum Account Executive", "Project Co-ordinator"
+    "Quality Analysis": [
+        "Senior QA",  "Quality Analyst", "Trainee QA"
     ],
-    Design_Team: [
-        "Sr. Graphic Designer", "Trainee - UI/UX"
+    "Full Stack Development": [
+        "Senior Developer", "Junior Developer", "Intern"
     ],
-    Executive_Management : [
+    "Blockchain Development": [
+        "Senior Blockchain Developer", "Junior Blockchain Developer",  "Intern"
+    ],
+    "Graphic Designing": [
+        "Senior Designer", "Junior Designer", "Intern"
+    ],
+    "System Administration": [
+        "Dev Ops Engineer", "Intern"
+    ],
+    Management: [
         "CEO", "Director", "CTO"
     ]
     
