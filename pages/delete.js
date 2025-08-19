@@ -5,7 +5,6 @@ export default function Delete() {
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error loading posts</p>;
-    console.log(employees);
   return (
     <div>
       <h1>Employees helolololoo</h1>

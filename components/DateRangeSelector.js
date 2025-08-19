@@ -45,7 +45,6 @@ const DateRangeSelector = () => {
 
   const handleExportDateRange = async () => {
     setIsExporting(true);
-    console.log(startDate, "Start-date", "End-date", endDate);
     await exportDateRangeToExcel(startDate, endDate);
     setIsExporting(false);
   };
@@ -54,7 +53,6 @@ const DateRangeSelector = () => {
     try {
       // Fetch data for the selected date range
       const data = await DateRangeAttendance(startDate, endDate);
-      console.log("data -> ", data);
       if (!data || data.length === 0) {
         alert("No attendance data available for the selected date range.");
         return;

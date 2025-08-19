@@ -120,14 +120,12 @@ function EmpEdit() {
     });
     const handleEdit = (id) => {
         try {
-            console.log("Handle edit called" , id);
             const employee = employees.find((emp) => emp.employee_id === id);
             if (!employee) {
                 setError("Employee not found")
                 console.error("Employee not found");
                 return;
             }
-            console.log(employee);
             setEditEmployee(employee);
             setShowModal(true);
         } catch (error) {

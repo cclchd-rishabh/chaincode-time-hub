@@ -21,10 +21,8 @@ export default function AttendanceCalendar() {
     
     try {
         const dateString = date.toISOString().split('T')[0];
-        console.log("Fetching attendance for date:", dateString); // For debugging
         
       const data = await getDatewiseAttendance(dateString);
-      console.log("Attendance data:", data);
       setAttendanceData(data);
     } catch (error) {
       setError("Failed to fetch attendance data.");
