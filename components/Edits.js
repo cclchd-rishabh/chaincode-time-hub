@@ -6,35 +6,55 @@ import { editEmployees, createEmployee, deleteEmployee, getAllEmployees } from "
 import { Button } from "@/components/ui/button";
 
 const roleOptions = {
-    "Supporting Staff":[
-        "Supporting Staff"
-    ],
     "HR and People Management": [
-        "Manager - (Team ICE)", , "Senior Executive - Inclusion & Culture", "Executive - Inclusion & Culture", "Intern"
+        "Manager - (Team ICE)",
+        "Senior Executive - Inclusion & Culture",
+        "Executive - Inclusion & Culture",
+        "Intern"
     ],
     "Business Growth": [
-        "Manager", "Senior Executive", "Executive",
-        , "Intern",
+        "Manager",
+        "Senior Executive",
+        "Executive",
+        "Intern"
     ],
     "Quality Analysis": [
-        "Senior QA",  "Quality Analyst", "Trainee QA"
+        "Senior QA",
+        "Quality Analyst",
+        "Trainee QA"
     ],
     "Full Stack Development": [
-        "Senior Developer", "Junior Developer", "Intern"
+        "Senior Developer",
+        "Junior Developer",
+        "Intern"
     ],
     "Blockchain Development": [
-        "Senior Blockchain Developer", "Junior Blockchain Developer",  "Intern"
+        "Senior Blockchain Developer",
+        "Junior Blockchain Developer",
+        "Intern"
     ],
     "Graphic Designing": [
-        "Senior Designer", "Junior Designer", "Intern"
+        "Senior Designer",
+        "Junior Designer",
+        "Intern"
     ],
     "System Administration": [
-        "Dev Ops Engineer", "Intern"
+        "Dev Ops Engineer",
+        "Intern"
     ],
-    Management: [
-        "CEO", "Director", "CTO"
+    "Management": [
+        "CEO",
+        "Director",
+        "CTO"
+    ],
+    "Wild Wheat Bakery": [
+        "HR CUM ACCOUNT EXECUTIVE",
+        "ACCOUNT EXECUTIVE",
+        "HR"
+    ],
+    "Supporting Staff":[
+        "Office Help"
     ]
-    
 };
 
 
